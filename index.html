@@ -2,480 +2,609 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aviação Brasileira — Leitura Executiva 2026</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Plan — Route to Fluência</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#000091;--purple:#6f166f;--teal:#00aabc;--red:#d71b3a;
-  --bg:#e6e8e9;--surface:#fff;--s1:#f4f5f6;
-  --bd:rgba(0,0,0,.09);--bd2:rgba(0,0,0,.16);
-  --text:#000;--t2:#333;--t3:#666;
-  --dom:#000091;--int:#00aabc;
-}
-html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
-.app{display:flex;flex-direction:column;height:100vh;min-height:600px}
+  :root{
+    --ink:#0F1B2B;
+    --panel:#16273B;
+    --panel-2:#1D3149;
+    --paper:#F3EFE6;
+    --paper-dim:#D9D2C2;
+    --amber:#C88A3B;
+    --amber-soft:#E3B573;
+    --signal:#4C8C6B;
+    --brick:#A6472E;
+    --line: rgba(243,239,230,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--ink);
+    color: var(--paper);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .serif{ font-family:'Lora', serif; }
 
-/* HEADER */
-.hdr{background:var(--navy);color:#fff;padding:9px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.hdr h1{font-size:14px;font-weight:600;letter-spacing:-.01em}
-.hdr-meta{font-size:9px;color:rgba(255,255,255,.4);margin-top:1px}
-.hdr-right{display:flex;align-items:center;gap:20px}
-.hdr-kpis{display:flex;gap:20px}
-.hdr-kpi .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:#fff;line-height:1}
-.hdr-kpi .l{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
-.seg-row{display:flex;gap:10px}
-.seg-it{display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,.5)}
-.seg-dot{width:7px;height:7px;border-radius:50%}
+  /* ===== HERO / BOARDING PASS ===== */
+  .hero{
+    background: linear-gradient(180deg, #0F1B2B 0%, #132236 100%);
+    border-bottom: 1px dashed var(--line);
+    padding: 28px 20px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; top:0; right:-40px; width:180px; height:180px;
+    background: radial-gradient(circle, rgba(200,138,59,0.12) 0%, transparent 70%);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color: var(--amber-soft); margin-bottom:10px;
+  }
+  .hero h1{
+    font-size: clamp(28px, 7vw, 40px);
+    font-weight:700; line-height:1.05; letter-spacing:-0.01em;
+    max-width: 480px;
+  }
+  .hero h1 em{ color:var(--amber-soft); font-style:normal; }
+  .route-strip{
+    display:flex; align-items:center; gap:10px;
+    margin-top:20px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+    color: var(--paper-dim);
+  }
+  .route-strip .code{ color:var(--paper); font-weight:600; font-size:15px; }
+  .route-strip .dash{ flex:1; border-top:1px dashed var(--line); position:relative; height:1px; }
+  .route-strip .plane{ font-size:14px; }
+  .countdown-row{
+    display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;
+  }
+  .count-box{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px 14px;
+    min-width:82px;
+  }
+  .count-box .num{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:var(--amber-soft); }
+  .count-box .lbl{ font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-dim); margin-top:2px; }
 
-/* FILTER + STRIP BAR */
-.filter-bar{background:var(--surface);border-bottom:1.5px solid var(--bd2);display:flex;align-items:stretch;flex-shrink:0}
-.filter-section{display:flex;align-items:center;border-right:0.5px solid var(--bd)}
-.filter-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);padding:0 10px;white-space:nowrap;border-right:0.5px solid var(--bd)}
-.filter-btn{padding:7px 13px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--t3);border-bottom:2px solid transparent}
-.filter-btn:hover{background:var(--s1);color:var(--text)}
-.filter-btn.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:700;background:var(--s1)}
-.month-strip{display:flex;flex:1;overflow:hidden}
-.mo-tab{flex:1;padding:6px 10px 5px;cursor:pointer;border-right:0.5px solid var(--bd);border-bottom:2px solid transparent;min-width:0}
-.mo-tab:last-child{border-right:none}
-.mo-tab.active{border-bottom-color:var(--navy);background:var(--s1)}
-.mo-tab:hover:not(.active){background:var(--s1)}
-.mo-tab.ytd{background:var(--navy)}
-.mo-tab.ytd.active{border-bottom-color:var(--purple)}
-.mo-tab.ytd *{color:#fff!important}
-.mo-tab.ytd .mint{color:var(--teal)!important}
-.mname{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
-.mpax{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
-.msub{font-size:9px;color:var(--t3);margin-top:2px;display:flex;gap:6px}
-.mlf{font-weight:600;color:var(--t2)}
-.mdom{color:var(--dom);font-weight:600}
-.mint{color:var(--int);font-weight:600}
+  /* ===== TABS ===== */
+  .tabs{
+    display:flex; overflow-x:auto; gap:2px;
+    background: var(--panel);
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:10;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab{
+    flex:0 0 auto;
+    padding:14px 16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:0.04em;
+    color: var(--paper-dim);
+    background:none; border:none; cursor:pointer;
+    border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .tab.active{ color:var(--amber-soft); border-bottom-color:var(--amber); }
 
-/* TOTALS */
-.totals-row{display:flex;gap:7px;padding:7px 18px;background:var(--surface);border-bottom:0.5px solid var(--bd);flex-shrink:0}
-.tot{padding:5px 10px;background:var(--s1);border-radius:3px;border-left:3px solid var(--bd2);flex:1}
-.tot.t-n{border-left-color:var(--navy)}.tot.t-p{border-left-color:var(--purple)}
-.tot.t-d{border-left-color:var(--dom)}.tot.t-i{border-left-color:var(--int)}
-.tot-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:2px}
-.tot-v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
-.tot-s{font-size:9px;color:var(--t3);margin-top:2px}
+  .view{ display:none; padding: 22px 18px 10px; max-width:640px; margin:0 auto; }
+  .view.active{ display:block; }
 
-/* BODY */
-.body{flex:1;display:grid;grid-template-columns:1fr 1fr 1.05fr;min-height:0;overflow:hidden}
+  h2.section-title{
+    font-size:20px; font-weight:600; margin-bottom:4px;
+  }
+  .section-sub{
+    color:var(--paper-dim); font-size:13px; margin-bottom:20px; line-height:1.5;
+  }
 
-/* PANELS */
-.panel{overflow-y:auto;border-right:0.5px solid var(--bd);background:var(--surface);display:flex;flex-direction:column}
-.panel:last-child{border-right:none}
-.phdr{padding:7px 14px;border-bottom:0.5px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:2}
-.ptitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy)}
-.psub{font-size:9px;color:var(--t3)}
+  /* ===== ROADMAP ===== */
+  .phase{
+    border-left:2px solid var(--line);
+    padding-left:18px; margin-bottom:22px; position:relative;
+  }
+  .phase::before{
+    content:""; position:absolute; left:-6px; top:2px;
+    width:10px; height:10px; border-radius:50%;
+    background: var(--panel); border:2px solid var(--amber);
+  }
+  .phase.done::before{ background: var(--signal); border-color:var(--signal); }
+  .phase-dates{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft); letter-spacing:0.05em; }
+  .phase-title{ font-size:16px; font-weight:600; margin:4px 0 6px; }
+  .phase-desc{ font-size:13.5px; color:var(--paper-dim); line-height:1.55; margin-bottom:8px;}
+  .phase ul{ list-style:none; }
+  .phase li{ font-size:13px; color:var(--paper); padding:3px 0 3px 16px; position:relative; line-height:1.5;}
+  .phase li::before{ content:"—"; position:absolute; left:0; color:var(--amber); }
 
-/* TABLES */
-table{width:100%;border-collapse:collapse}
-th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);padding:5px 8px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;position:sticky;top:37px;background:var(--surface);z-index:1}
-th.tl{text-align:left}
-td{padding:4px 8px;border-bottom:0.5px solid var(--bd);vertical-align:middle;font-variant-numeric:tabular-nums;white-space:nowrap}
-tr:last-child td{border:none}
-tr:hover td{background:var(--s1)}
-.nr{text-align:right}
+  .habit-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:16px; margin-top:24px;
+  }
+  .habit-card .htitle{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;}
+  .habit-card p{ font-size:13.5px; color:var(--paper-dim); line-height:1.6; }
+  .habit-card p + p { margin-top:8px; }
 
-/* RANK BADGE */
-.rnk{width:17px;height:17px;border-radius:50%;background:var(--bd);font-size:9px;font-weight:700;color:var(--t3);display:inline-flex;align-items:center;justify-content:center}
-.r1{background:var(--purple);color:#fff}.r2{background:#c0c4cc;color:#000}.r3{background:#c27c2a;color:#fff}
+  /* ===== FLASHCARDS ===== */
+  .cat-row{ display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; padding-bottom:4px;}
+  .cat-btn{
+    flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+    padding:7px 12px; border-radius:20px; border:1px solid var(--line);
+    background:transparent; color:var(--paper-dim); cursor:pointer; white-space:nowrap;
+  }
+  .cat-btn.active{ background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600;}
 
-/* ── AIRLINE LOGO LAYOUT ── */
-/* Logo ocupa célula própria, sem texto ao lado */
-.al-logo-cell{width:44px;text-align:center;padding-right:4px}
-.al-logo{width:38px;height:24px;object-fit:contain;border-radius:3px;display:block;margin:0 auto}
-.al-logo-fb{width:38px;height:24px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;letter-spacing:.02em;margin:0 auto}
-/* Nome fica na célula seguinte */
-.al-name{font-size:12px;font-weight:600}
-.al-sub{font-size:9px;color:var(--t3);margin-top:1px}
+  .flip-wrap{ perspective:1200px; margin-bottom:16px; }
+  .flip-card{
+    position:relative; width:100%; min-height:180px;
+    transform-style:preserve-3d; transition:transform 0.5s;
+    cursor:pointer;
+  }
+  .flip-card.flipped{ transform: rotateY(180deg); }
+  .flip-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:8px; padding:22px;
+    display:flex; flex-direction:column; justify-content:center;
+    border:1px solid var(--line);
+  }
+  .flip-front{ background: var(--panel-2); }
+  .flip-back{ background: var(--paper); color:var(--ink); transform: rotateY(180deg); }
+  .flip-tag{ font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--amber-soft); margin-bottom:10px;}
+  .flip-back .flip-tag{ color:var(--brick); }
+  .flip-term{ font-size:22px; font-weight:600; line-height:1.25; }
+  .flip-back .flip-term{ font-family:'Lora',serif; font-size:16px; font-weight:400; font-style:italic; line-height:1.5; }
+  .flip-hint{ font-size:11px; color:var(--paper-dim); margin-top:14px; }
+  .flip-back .flip-hint{ color:#8a8474; }
 
-/* SHARE BAR */
-.sb{display:flex;align-items:center;gap:4px;justify-content:flex-end}
-.sb-bg{height:3px;border-radius:2px;background:var(--bg);overflow:hidden;flex-shrink:0}
-.sb-fill{height:100%;border-radius:2px}
-.sb-v{font-size:10px;min-width:30px;text-align:right}
+  .card-nav{ display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
+  .nav-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--paper);
+    padding:9px 16px; border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer;
+  }
+  .nav-btn:active{ background:var(--panel-2); }
+  .card-count{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--paper-dim); }
 
-/* LF PILL */
-.lf{display:inline-block;padding:1px 5px;border-radius:2px;font-size:10px;font-weight:700}
-.lf-hi{background:#d1fae5;color:#065f46}.lf-md{background:#dbeafe;color:#1e3a8a}
-.lf-lo{background:#fef9c3;color:#713f12}.lf-vlo{background:#fee2e2;color:#7f1d1d}
+  /* ===== SCRIPTS ===== */
+  .script-block{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:16px 18px; margin-bottom:14px;
+  }
+  .script-block .stitle{ font-weight:600; font-size:14.5px; margin-bottom:10px; color:var(--amber-soft);}
+  .script-line{ font-family:'Lora',serif; font-size:14.5px; line-height:1.6; padding:8px 0; border-top:1px solid var(--line); }
+  .script-line:first-of-type{ border-top:none; }
+  .script-line .pt{ display:block; font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:var(--paper-dim); margin-top:3px; }
 
-/* AIRPORT */
-.ap-seg{display:flex;gap:1px;margin-top:2px;height:3px}
-.ap-d{background:var(--dom);border-radius:1px}.ap-i{background:var(--int);border-radius:1px}
-.di{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
-.di-d{font-size:9px;font-weight:600;color:var(--dom)}.di-i{font-size:9px;font-weight:600;color:var(--int)}
+  /* ===== TRACKER ===== */
+  .tracker-form{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:20px;}
+  .form-row{ margin-bottom:12px; }
+  .form-row label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--paper-dim); margin-bottom:6px;}
+  .form-row select, .form-row input, .form-row textarea{
+    width:100%; background:var(--ink); border:1px solid var(--line); color:var(--paper);
+    padding:10px; border-radius:4px; font-family:'Space Grotesk',sans-serif; font-size:14px;
+  }
+  .rating-row{ display:flex; gap:8px; }
+  .rate-btn{
+    flex:1; padding:10px 0; border-radius:4px; border:1px solid var(--line);
+    background:var(--ink); color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; cursor:pointer;
+  }
+  .rate-btn.sel{ background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600;}
+  .submit-btn{
+    width:100%; background:var(--signal); color:var(--ink); border:none;
+    padding:12px; border-radius:5px; font-weight:600; font-family:'Space Grotesk',sans-serif;
+    font-size:14px; cursor:pointer; margin-top:6px;
+  }
+  .log-entry{
+    border-left:2px solid var(--amber); padding:10px 0 10px 14px; margin-bottom:10px;
+  }
+  .log-entry .ldate{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft);}
+  .log-entry .lfocus{ font-size:14px; font-weight:600; margin:3px 0;}
+  .log-entry .lnote{ font-size:12.5px; color:var(--paper-dim); }
+  .empty-state{ color:var(--paper-dim); font-size:13px; text-align:center; padding:30px 0; }
+  .stat-row{ display:flex; gap:10px; margin-bottom:20px; }
+  .stat-box{ flex:1; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center;}
+  .stat-box .snum{ font-family:'IBM Plex Mono',monospace; font-size:22px; color:var(--amber-soft); font-weight:600;}
+  .stat-box .slbl{ font-size:10px; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:2px;}
 
-/* RIGHT PANEL */
-.rpanel{overflow-y:auto;background:var(--surface);display:flex;flex-direction:column}
-.section{padding:10px 14px 12px;border-bottom:0.5px solid var(--bd)}
-.stitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:7px}
-.chart-wrap{position:relative;height:128px}
-.leg{display:flex;gap:12px;margin-bottom:6px}
-.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
-.ls{width:9px;height:9px;border-radius:2px}
-table.ctx th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);padding:4px 6px;border-bottom:0.5px solid var(--bd2);text-align:right;position:static;background:transparent;top:auto}
-table.ctx th.tl{text-align:left}
-table.ctx td{padding:3px 6px;border-bottom:0.5px solid var(--bd);font-size:11px;font-variant-numeric:tabular-nums}
-.active-mo td{background:var(--s1)}.active-mo td:first-child{color:var(--navy);font-weight:700}
-.footnote{font-size:9px;color:var(--t3);padding:6px 14px 8px;border-top:0.5px solid var(--bd);margin-top:auto}
+  /* ===== POCKET / CHEAT SHEET ===== */
+  .pocket-group{ margin-bottom:22px; }
+  .pocket-group h3{ font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(--amber-soft); font-family:'IBM Plex Mono',monospace; margin-bottom:10px; }
+  .pocket-line{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:12px 14px; margin-bottom:8px; font-size:14px; line-height:1.5;
+  }
+  .pocket-line .pt-label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--paper-dim); margin-top:4px;}
+  .print-note{ font-size:12px; color:var(--paper-dim); margin-top:10px; text-align:center; }
 
-/* LOADING */
-.loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--t3);font-size:12px;gap:8px}
-.spinner{width:16px;height:16px;border:2px solid var(--bd2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+  @media print{
+    .tabs, .hero{ display:none; }
+    body{ background:white; color:black; }
+  }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="loading"><div class="spinner"></div>Carregando dados...</div>
+
+<div class="hero">
+  <div class="eyebrow">Fraport Brasil · Business Development</div>
+  <h1>Flight <em>Plan</em><br>Route to Fluência</h1>
+  <div class="route-strip">
+    <span class="code">POA</span>
+    <span class="dash"><span class="plane" style="position:absolute; left:50%; top:-9px;">✈</span></span>
+    <span class="code">FRA</span>
+  </div>
+  <div id="countdown" class="countdown-row"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-view="roadmap">ROADMAP</button>
+  <button class="tab" data-view="vocab">VOCABULÁRIO</button>
+  <button class="tab" data-view="scripts">NEGOCIAÇÃO</button>
+  <button class="tab" data-view="tracker">TRACKER</button>
+  <button class="tab" data-view="pocket">DE BOLSO</button>
+</div>
+
+<!-- ROADMAP -->
+<div class="view active" id="view-roadmap">
+  <h2 class="section-title">4 fases até Riyadh</h2>
+  <p class="section-sub">78 dias reais até o evento — realocado para Frankfurt (21–23 out, Messe Frankfurt) após a mudança de sede. Sprint principal de 60 dias + buffer de polimento.</p>
+
+  <div class="phase" id="phase1">
+    <div class="phase-dates">04 — 17 AGO · SEMANAS 1-2</div>
+    <div class="phase-title">Diagnóstico + Base</div>
+    <div class="phase-desc">Não é gramática nova — é destravar o que tu já sabe. O objetivo é reduzir o tempo entre "pensar" e "falar".</div>
+    <ul>
+      <li>Grave 3x/semana respondendo perguntas espontâneas em áudio (2min, sem preparo)</li>
+      <li>Reescute e marque onde travou: busca de palavra, medo de erro, ou tradução mental?</li>
+      <li>Shadowing diário 10min com conteúdo real de aviação (podcasts de route development)</li>
+    </ul>
+  </div>
+
+  <div class="phase" id="phase2">
+    <div class="phase-dates">18 AGO — 14 SET · SEMANAS 3-6</div>
+    <div class="phase-title">Vocabulário técnico + Speaking ativo</div>
+    <div class="phase-desc">Construir o vocabulário específico do teu mundo (route development, incentivos, negociação) e treinar produção ativa, não passiva.</div>
+    <ul>
+      <li>15 termos novos/semana via flashcards (aba Vocabulário) — revisão espaçada</li>
+      <li>2x/semana: grave um "elevator pitch" do caso POA–MAD em 90 segundos</li>
+      <li>1x/semana: sessão de conversação real (italki, tandem, ou colega fluente) focada em negociação</li>
+    </ul>
+  </div>
+
+  <div class="phase" id="phase3">
+    <div class="phase-dates">15 SET — 05 OUT · SEMANAS 7-9</div>
+    <div class="phase-title">Simulação de cenários da feira</div>
+    <div class="phase-desc">Role-play do que vai acontecer de verdade: reunião marcada, encontro casual no corredor, pergunta que tu não esperava.</div>
+    <ul>
+      <li>Use a aba Negociação como roteiro-base e improvise variações</li>
+      <li>Simule objeções: "por que Porto Alegre e não outro hub do Cone Sul?"</li>
+      <li>Pratique small talk de abertura e fechamento de reunião (aba De Bolso)</li>
+    </ul>
+  </div>
+
+  <div class="phase" id="phase4">
+    <div class="phase-dates">06 — 17 OUT · SEMANAS 10-11</div>
+    <div class="phase-title">Polimento + revisão de emergência</div>
+    <div class="phase-desc">Menos volume, mais precisão. Foco nas frases de recuperação para quando travar na hora H.</div>
+    <ul>
+      <li>Revise só o que errou nas simulações anteriores</li>
+      <li>Memorize as 10 frases de recuperação da aba De Bolso</li>
+      <li>Última semana: reduza intensidade, mantenha só manutenção leve</li>
+    </ul>
+  </div>
+
+  <div class="habit-card">
+    <div class="htitle">Hábito mínimo diário (dias corridos)</div>
+    <p><strong>15-20min:</strong> 10 flashcards + 1 gravação de 90s respondendo uma pergunta aleatória em inglês. Registra na aba Tracker.</p>
+    <p><strong>Quando der bloco maior (2-3x/semana):</strong> sessão de conversação real + role-play de um cenário completo da aba Negociação.</p>
+  </div>
+</div>
+
+<!-- VOCAB -->
+<div class="view" id="view-vocab">
+  <h2 class="section-title">Vocabulário técnico</h2>
+  <p class="section-sub">Toca no card pra virar. Desliza entre categorias.</p>
+  <div class="cat-row" id="catRow"></div>
+  <div class="flip-wrap">
+    <div class="flip-card" id="flipCard">
+      <div class="flip-face flip-front">
+        <div class="flip-tag" id="cardTagFront">TERMO</div>
+        <div class="flip-term" id="cardTerm"></div>
+        <div class="flip-hint">toca para ver o significado</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="flip-tag" id="cardTagBack">SIGNIFICADO</div>
+        <div class="flip-term" id="cardDef"></div>
+        <div class="flip-hint" id="cardEx"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card-nav">
+    <button class="nav-btn" onclick="prevCard()">← anterior</button>
+    <span class="card-count" id="cardCount"></span>
+    <button class="nav-btn" onclick="nextCard()">próxima →</button>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<div class="view" id="view-scripts">
+  <h2 class="section-title">Roteiros de negociação</h2>
+  <p class="section-sub">Estrutura, não decoreba. Adapta ao teu tom natural.</p>
+
+  <div class="script-block">
+    <div class="stitle">1. Abrindo uma reunião</div>
+    <div class="script-line">"Thanks for making time — I know the schedule here is packed."<span class="pt">Agradece de forma direta, reconhece a correria do evento.</span></div>
+    <div class="script-line">"Before we dive in, quick context on where we're coming from at Fraport Brasil."<span class="pt">Sinaliza que vai contextualizar antes do pitch.</span></div>
+  </div>
+
+  <div class="script-block">
+    <div class="stitle">2. Apresentando o caso de rota</div>
+    <div class="script-line">"The catchment area around Porto Alegre supports a route like this — let me walk you through the numbers."<span class="pt">Abre com a tese, não com dados soltos.</span></div>
+    <div class="script-line">"We're seeing consistent O&D demand on this corridor, and the incentive package is designed to de-risk the ramp-up period."<span class="pt">Conecta demanda real ao pacote de incentivo.</span></div>
+  </div>
+
+  <div class="script-block">
+    <div class="stitle">3. Lidando com objeções</div>
+    <div class="script-line">"That's a fair point — let me address it directly."<span class="pt">Nunca ignora a objeção, valida antes de responder.</span></div>
+    <div class="script-line">"If frequency is the concern, we're open to discussing a phased approach — seasonal first, year-round once load factors prove out."<span class="pt">Mostra flexibilidade sem perder a proposta central.</span></div>
+  </div>
+
+  <div class="script-block">
+    <div class="stitle">4. Fechando / próximos passos</div>
+    <div class="script-line">"What would you need from us to move this to a formal proposal?"<span class="pt">Pergunta que transfere a próxima ação de forma natural.</span></div>
+    <div class="script-line">"I'll follow up this week with the route feasibility summary — who's the best person to loop in on your side?"<span class="pt">Fecha com ação concreta e prazo.</span></div>
+  </div>
+
+  <div class="script-block">
+    <div class="stitle">5. Small talk de corredor</div>
+    <div class="script-line">"How's the show treating you so far?"<span class="pt">Abertura padrão, funciona sempre.</span></div>
+    <div class="script-line">"What's the one route everyone's talking about this year?"<span class="pt">Pergunta que gera conversa de conteúdo, não só cortesia.</span></div>
+  </div>
+</div>
+
+<!-- TRACKER -->
+<div class="view" id="view-tracker">
+  <h2 class="section-title">Tracker diário</h2>
+  <p class="section-sub">Registro rápido — leva 30 segundos.</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="snum" id="statTotal">0</div><div class="slbl">Sessões</div></div>
+    <div class="stat-box"><div class="snum" id="statMin">0</div><div class="slbl">Min. totais</div></div>
+    <div class="stat-box"><div class="snum" id="statAvg">—</div><div class="slbl">Confiança média</div></div>
+  </div>
+
+  <div class="tracker-form">
+    <div class="form-row">
+      <label>Foco da sessão</label>
+      <select id="fFocus">
+        <option>Speaking / conversação</option>
+        <option>Vocabulário técnico</option>
+        <option>Listening</option>
+        <option>Simulação de negociação</option>
+        <option>Small talk</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Minutos praticados</label>
+      <input type="number" id="fMin" placeholder="ex: 20">
+    </div>
+    <div class="form-row">
+      <label>Confiança (1 = travei muito, 5 = fluiu bem)</label>
+      <div class="rating-row" id="ratingRow"></div>
+    </div>
+    <div class="form-row">
+      <label>Nota rápida (opcional)</label>
+      <textarea id="fNote" rows="2" placeholder="onde travou, o que funcionou..."></textarea>
+    </div>
+    <button class="submit-btn" onclick="saveLog()">Registrar sessão</button>
+  </div>
+
+  <div id="logList"></div>
+</div>
+
+<!-- POCKET -->
+<div class="view" id="view-pocket">
+  <h2 class="section-title">De bolso — Routes World 2026</h2>
+  <p class="section-sub">Versão condensada para consulta rápida no evento. Ctrl/Cmd+P imprime limpo.</p>
+
+  <div class="pocket-group">
+    <h3>Se travar</h3>
+    <div class="pocket-line">"Let me rephrase that."<span class="pt-label">reformula sem pedir desculpas</span></div>
+    <div class="pocket-line">"What I mean to say is..."<span class="pt-label">recupera o fio da meada</span></div>
+    <div class="pocket-line">"Give me one second to put that the right way."<span class="pt-label">ganha tempo com naturalidade</span></div>
+    <div class="pocket-line">"Sorry, could you say that again? The noise here is rough."<span class="pt-label">pede repetição sem constranger — funciona bem no salão da feira</span></div>
+  </div>
+
+  <div class="pocket-group">
+    <h3>Números e crescimento</h3>
+    <div class="pocket-line">"a X% increase year-over-year"<span class="pt-label">crescimento anual</span></div>
+    <div class="pocket-line">"we're projecting a X% load factor within the first season"<span class="pt-label">projeção de ocupação</span></div>
+    <div class="pocket-line">"breakeven within 18 to 24 months"<span class="pt-label">prazo de retorno</span></div>
+  </div>
+
+  <div class="pocket-group">
+    <h3>Abrir conversa</h3>
+    <div class="pocket-line">"What brings you to Routes this year?"</div>
+    <div class="pocket-line">"Are you looking at South America at all right now?"</div>
+    <div class="pocket-line">"Mind if I grab five minutes before you head to your next meeting?"</div>
+  </div>
+
+  <div class="pocket-group">
+    <h3>Fechar conversa</h3>
+    <div class="pocket-line">"I don't want to take up more of your time — let's continue this over email."</div>
+    <div class="pocket-line">"Who else on your team should see this?"</div>
+  </div>
+
+  <p class="print-note">Dica: adiciona esta página aos favoritos do celular pra consulta offline no salão.</p>
 </div>
 
 <script>
-// ── AIRLINE MAP ─────────────────────────────────────────────
-const AL_MAP={
-  TAM:{iata:'JJ',name:'LATAM',sub:'JJ · TAM',color:'#d71b3a',txt:'#fff'},
-  GLO:{iata:'G3',name:'GOL',sub:'G3 · GLO',color:'#f2c900',txt:'#000'},
-  AZU:{iata:'AD',name:'Azul',sub:'AD · AZU',color:'#000091',txt:'#fff'},
-  LAN:{iata:'LA',name:'LATAM Cargo',sub:'LA · LAN',color:'#6f166f',txt:'#fff'},
-  TAP:{iata:'TP',name:'TAP',sub:'TP · TAP',color:'#00aabc',txt:'#fff'},
-  ARG:{iata:'AR',name:'Aerolíneas Arg.',sub:'AR · ARG',color:'#74acdf',txt:'#000'},
-  CMP:{iata:'CM',name:'Copa Airlines',sub:'CM · CMP',color:'#003087',txt:'#fff'},
-  AAL:{iata:'AA',name:'American Airlines',sub:'AA · AAL',color:'#b91c1c',txt:'#fff'},
-  JES:{iata:'T4',name:'Passaredo',sub:'T4 · JES',color:'#374151',txt:'#fff'},
-  AVA:{iata:'AV',name:'Avianca',sub:'AV · AVA',color:'#e30613',txt:'#fff'},
-  AFR:{iata:'AF',name:'Air France',sub:'AF · AFR',color:'#002157',txt:'#fff'},
-  JAT:{iata:'JU',name:'Air Serbia',sub:'JU · JAT',color:'#0e7490',txt:'#fff'},
-  UAL:{iata:'UA',name:'United Airlines',sub:'UA · UAL',color:'#1e3a5f',txt:'#fff'},
-  SKU:{iata:'H2',name:'Sky Airline',sub:'H2 · SKU',color:'#78350f',txt:'#fff'},
-  THY:{iata:'TK',name:'Turkish Airlines',sub:'TK · THY',color:'#e30a17',txt:'#fff'},
-  IBE:{iata:'IB',name:'Iberia',sub:'IB · IBE',color:'#d71920',txt:'#fff'},
-  FBZ:{iata:'FZ',name:'Flybondi',sub:'FZ · FBZ',color:'#f97316',txt:'#fff'},
-};
-function alInfo(c){return AL_MAP[c]||{iata:c,name:c,sub:c,color:'#9ca3af',txt:'#fff'};}
-function logoUrl(iata){return `https://content.airhex.com/content/logos/airlines_${iata}_100_100_r.png`;}
-
-// ── UTILS ───────────────────────────────────────────────────
-function nk(v){
-  if(v==null)return '—';
-  if(v>=1e6)return (v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'M';
-  if(v>=1e3)return Math.round(v/1e3).toLocaleString('pt-BR')+'k';
-  return Math.round(v).toLocaleString('pt-BR');
+// ===== COUNTDOWN =====
+const eventDate = new Date('2026-10-21T00:00:00');
+function renderCountdown(){
+  const now = new Date();
+  const diff = eventDate - now;
+  const days = Math.max(0, Math.floor(diff / (1000*60*60*24)));
+  const weeks = Math.floor(days/7);
+  document.getElementById('countdown').innerHTML = `
+    <div class="count-box"><div class="num">${days}</div><div class="lbl">dias p/ Frankfurt</div></div>
+    <div class="count-box"><div class="num">${weeks}</div><div class="lbl">semanas</div></div>
+  `;
 }
-function pct(v,d=1){return v==null?'—':(v*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';}
-function lfClass(v){return v>=.87?'lf-hi':v>=.82?'lf-md':v>=.78?'lf-lo':'lf-vlo';}
-function rnkClass(i){return i===0?'r1':i===1?'r2':i===2?'r3':'';}
-const ICAO2={SBGR:'GRU',SBSP:'CGH',SBGL:'GIG',SBBR:'BSB',SBCF:'CNF',SBKP:'VCP',
-  SBRF:'REC',SBSV:'SSA',SBPA:'POA',SBRJ:'SDU',SBCT:'CWB',SBFZ:'FOR',SBFL:'FLN',
-  SBBE:'BEL',SBGO:'GYN',SBVT:'VIX',SBMO:'MCZ',SBEG:'MAO',SBSG:'NAT',SBCY:'CGB'};
+renderCountdown();
 
-// ── STATE ───────────────────────────────────────────────────
-let DB=null, activeMes='ytd', activeFilter='all', trendChart=null;
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-'+tab.dataset.view).classList.add('active');
+  });
+});
 
-// ── LOAD DATA ───────────────────────────────────────────────
-async function loadData(){
-  try{
-    const r=await fetch('./data/anacm26.json');
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    DB=await r.json();
-    buildApp();
-  }catch(e){
-    document.getElementById('app').innerHTML=
-      `<div class="loading" style="flex-direction:column;gap:12px">
-        <div style="color:#d71b3a;font-weight:600">Erro ao carregar dados</div>
-        <div style="font-size:11px;color:var(--t3)">${e.message}</div>
-        <div style="font-size:10px;color:var(--t3)">Verifique se data/anacm26.json existe no repositório</div>
-      </div>`;
+// ===== VOCAB DATA =====
+const vocabData = {
+  "Route Development": [
+    {term:"Catchment area", def:"Área de abrangência — a região geográfica de onde o aeroporto atrai passageiros.", ex:"Ex: \"The catchment area extends well beyond metro Porto Alegre.\""},
+    {term:"Load factor", def:"Fator de ocupação — percentual de assentos vendidos em relação à capacidade total.", ex:"Ex: \"We need a load factor above 75% to sustain year-round frequency.\""},
+    {term:"O&D traffic", def:"Tráfego Origem-Destino — passageiros cujo destino final é aquele par de cidades, não conexão.", ex:"Ex: \"Strong O&D traffic makes this route less dependent on connecting flows.\""},
+    {term:"Frequency", def:"Frequência — número de voos operados por semana numa rota.", ex:"Ex: \"We're proposing three weekly frequencies to start.\""},
+    {term:"Seasonality", def:"Sazonalidade — variação de demanda ao longo do ano.", ex:"Ex: \"Seasonality is a real factor here — summer demand is nearly double.\""},
+    {term:"Hub-and-spoke", def:"Modelo de rede em que voos passam por um hub central antes de seguir a outros destinos.", ex:"Ex: \"Their network still runs mostly hub-and-spoke through Madrid.\""},
+    {term:"Point-to-point", def:"Voo direto entre dois destinos, sem passar por hub.", ex:"Ex: \"Low-cost carriers tend to favor point-to-point networks.\""},
+    {term:"Traffic rights", def:"Direitos de tráfego — autorizações bilaterais que permitem operar entre dois países.", ex:"Ex: \"Traffic rights between Brazil and Saudi Arabia were only recently expanded.\""},
+    {term:"Slot", def:"Horário de pouso/decolagem alocado a uma companhia num aeroporto.", ex:"Ex: \"Slot availability at the destination airport is part of the feasibility study.\""},
+    {term:"Codeshare", def:"Acordo em que duas companhias vendem passagens no mesmo voo sob códigos diferentes.", ex:"Ex: \"A codeshare agreement could help build the route before going year-round.\""},
+    {term:"Wide-body / narrow-body", def:"Aeronave de fuselagem larga (dois corredores) vs. estreita (um corredor).", ex:"Ex: \"A narrow-body makes more sense for the initial ramp-up.\""},
+    {term:"Block hours", def:"Tempo total de operação da aeronave, do pushback ao pouso final.", ex:"Ex: \"Route economics are usually measured per block hour.\""},
+    {term:"MIDT data", def:"Dados de reservas globais usados para estimar demanda de uma rota (Marketing Information Data Tapes).", ex:"Ex: \"MIDT data shows consistent booking demand on this city pair.\""},
+    {term:"Connectivity", def:"Conectividade — qualidade e quantidade de conexões que um hub oferece.", ex:"Ex: \"This route significantly improves our connectivity to Southern Europe.\""},
+    {term:"Network carrier", def:"Companhia aérea que opera em modelo de rede com hub central, geralmente com conexões amplas.", ex:"Ex: \"As a network carrier, they'll evaluate this against their entire hub strategy.\""}
+  ],
+  "Negociação & Incentivos": [
+    {term:"Landing fee waiver", def:"Isenção de taxa de pouso — incentivo comum em programas de atração de rotas.", ex:"Ex: \"The incentive includes a landing fee waiver for the first 24 months.\""},
+    {term:"Marketing support", def:"Apoio de marketing — recurso oferecido para promover o lançamento da rota.", ex:"Ex: \"We can offer marketing support to help build awareness at launch.\""},
+    {term:"Ramp-up period", def:"Período de maturação — fase inicial em que a rota ainda está construindo demanda.", ex:"Ex: \"The ramp-up period is usually the riskiest phase for the carrier.\""},
+    {term:"Route risk-sharing", def:"Compartilhamento de risco da rota entre aeroporto e companhia aérea.", ex:"Ex: \"Route risk-sharing mechanisms make the proposal more attractive.\""},
+    {term:"Breakeven", def:"Ponto de equilíbrio — quando receita cobre os custos operacionais da rota.", ex:"Ex: \"We're modeling breakeven within 18 to 24 months.\""},
+    {term:"MOU", def:"Memorando de Entendimento — acordo preliminar não vinculante entre as partes.", ex:"Ex: \"Let's start with an MOU before drafting the formal agreement.\""},
+    {term:"Letter of intent", def:"Carta de intenção — sinaliza interesse sério antes do contrato formal.", ex:"Ex: \"A letter of intent would help us move this forward internally.\""},
+    {term:"Exclusivity clause", def:"Cláusula de exclusividade — impede concorrência direta na rota por um período.", ex:"Ex: \"We're not proposing an exclusivity clause at this stage.\""},
+    {term:"Route performance review", def:"Revisão periódica de desempenho da rota após o lançamento.", ex:"Ex: \"There's a route performance review built in at the 12-month mark.\""},
+    {term:"Commitment", def:"Comprometimento — compromisso formal de operação por um período mínimo.", ex:"Ex: \"What kind of commitment would you need from the airline's side?\""}
+  ],
+  "Small talk & Networking": [
+    {term:"\"How's the show treating you?\"", def:"Como está sendo a feira pra você — abertura casual e universal.", ex:""},
+    {term:"\"What brings you to Routes this year?\"", def:"O que te trouxe à Routes esse ano — pergunta de abertura padrão do setor.", ex:""},
+    {term:"\"Let's grab a coffee and continue this.\"", def:"Convite natural pra continuar a conversa em ambiente menos corrido.", ex:""},
+    {term:"\"Who else should I be talking to about this?\"", def:"Pergunta que expande a rede sem soar insistente.", ex:""},
+    {term:"\"I'll follow up with a proposal.\"", def:"Fecha a conversa com uma ação concreta e prazo implícito.", ex:""}
+  ]
+};
+let currentCat = "Route Development";
+let currentIdx = 0;
+let flipped = false;
+
+function renderCats(){
+  const row = document.getElementById('catRow');
+  row.innerHTML = '';
+  Object.keys(vocabData).forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat===currentCat ? ' active':'');
+    btn.textContent = cat;
+    btn.onclick = ()=>{ currentCat = cat; currentIdx = 0; flipped=false; renderCats(); renderCard(); };
+    row.appendChild(btn);
+  });
+}
+function renderCard(){
+  const list = vocabData[currentCat];
+  const item = list[currentIdx];
+  document.getElementById('cardTerm').textContent = item.term;
+  document.getElementById('cardDef').textContent = item.def;
+  document.getElementById('cardEx').textContent = item.ex || '';
+  document.getElementById('cardCount').textContent = (currentIdx+1) + ' / ' + list.length;
+  document.getElementById('flipCard').classList.remove('flipped');
+  flipped = false;
+}
+function nextCard(){
+  const list = vocabData[currentCat];
+  currentIdx = (currentIdx+1) % list.length;
+  renderCard();
+}
+function prevCard(){
+  const list = vocabData[currentCat];
+  currentIdx = (currentIdx-1+list.length) % list.length;
+  renderCard();
+}
+document.getElementById('flipCard').addEventListener('click', function(){
+  flipped = !flipped;
+  this.classList.toggle('flipped', flipped);
+});
+renderCats();
+renderCard();
+
+// ===== TRACKER =====
+let selectedRating = 3;
+function renderRatingRow(){
+  const row = document.getElementById('ratingRow');
+  row.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const btn = document.createElement('button');
+    btn.className = 'rate-btn' + (i===selectedRating ? ' sel':'');
+    btn.textContent = i;
+    btn.type = 'button';
+    btn.onclick = ()=>{ selectedRating = i; renderRatingRow(); };
+    row.appendChild(btn);
   }
 }
+renderRatingRow();
 
-// ── BUILD APP SKELETON ───────────────────────────────────────
-function buildApp(){
-  document.getElementById('app').innerHTML=`
-    <div class="hdr">
-      <div>
-        <h1>Aviação Comercial — Mercado Brasil 2026</h1>
-        <div class="hdr-meta">ANAC · AnacM 26 · Grupo Pax · Atualizado: ${DB.meta.updated}</div>
-      </div>
-      <div class="hdr-right">
-        <div class="seg-row">
-          <div class="seg-it"><div class="seg-dot" style="background:#fff"></div>Doméstico</div>
-          <div class="seg-it"><div class="seg-dot" style="background:var(--teal)"></div>Internacional</div>
-        </div>
-        <div class="hdr-kpis">
-          <div class="hdr-kpi"><div class="v" id="hdr-pax">—</div><div class="l">PAX</div></div>
-          <div class="hdr-kpi"><div class="v" id="hdr-atm">—</div><div class="l">ATM</div></div>
-          <div class="hdr-kpi"><div class="v" id="hdr-lf">—</div><div class="l">LF</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="filter-bar">
-      <div class="filter-section">
-        <div class="filter-label">Segmento</div>
-        <button class="filter-btn on" id="btn-all" onclick="setFilter('all')">Todos</button>
-        <button class="filter-btn" id="btn-dom" onclick="setFilter('dom')">Doméstico</button>
-        <button class="filter-btn" id="btn-int" onclick="setFilter('int')">Internacional</button>
-      </div>
-      <div class="month-strip" id="monthStrip"></div>
-    </div>
-    <div class="totals-row" id="totalsRow"></div>
-    <div class="body">
-      <div class="panel">
-        <div class="phdr"><span class="ptitle">Top Airlines</span><span class="psub" id="al-sub">DEP · Grupo Pax</span></div>
-        <div><table>
-          <thead><tr>
-            <th class="tl" style="width:20px"></th>
-            <th class="tl" style="width:42px">Logo</th>
-            <th class="tl">Airline</th>
-            <th>PAX</th><th style="min-width:94px">Share</th><th>LF</th>
-          </tr></thead>
-          <tbody id="tbAirline"></tbody>
-        </table></div>
-      </div>
-      <div class="panel">
-        <div class="phdr"><span class="ptitle">Top 15 Aeroportos</span><span class="psub" id="ap-sub">DEP</span></div>
-        <div><table>
-          <thead><tr>
-            <th class="tl" style="width:20px"></th>
-            <th class="tl" style="min-width:50px">Aero</th>
-            <th>PAX</th><th style="min-width:88px">Share</th><th>LF</th>
-            <th class="tl" style="padding-left:6px;min-width:88px">DOM · INT</th>
-          </tr></thead>
-          <tbody id="tbAirport"></tbody>
-        </table></div>
-      </div>
-      <div class="rpanel">
-        <div class="section">
-          <div class="stitle">Evolução Mensal — PAX (mil)</div>
-          <div class="leg">
-            <div class="li"><div class="ls" style="background:var(--dom)"></div>Doméstico</div>
-            <div class="li"><div class="ls" style="background:var(--int)"></div>Internacional</div>
-          </div>
-          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-        </div>
-        <div class="section">
-          <div class="stitle">Resumo Mensal</div>
-          <table class="ctx"><thead><tr>
-            <th class="tl">Mês</th><th class="nr">PAX</th>
-            <th class="nr" style="color:var(--dom)">DOM</th>
-            <th class="nr" style="color:var(--int)">INT</th>
-            <th class="nr">LF</th><th class="nr">ATM</th>
-          </tr></thead><tbody id="ctxTable"></tbody></table>
-        </div>
-        <div class="footnote">Fonte: ANAC · AnacM 26 · ${DB.meta.period} · DEP (airlines/mercado) · Aeroportos: DEP</div>
-      </div>
-    </div>`;
-  buildTrend();
-  render();
+function getLogs(){
+  try{
+    const raw = localStorage.getItem('flightplan_logs');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
 }
-
-// ── FILTER ──────────────────────────────────────────────────
-function setFilter(f){
-  activeFilter=f;
-  ['all','dom','int'].forEach(x=>{
-    const el=document.getElementById('btn-'+x);
-    if(el)el.classList.toggle('on',x===f);
+function saveLog(){
+  const focus = document.getElementById('fFocus').value;
+  const min = parseInt(document.getElementById('fMin').value) || 0;
+  const note = document.getElementById('fNote').value;
+  const logs = getLogs();
+  logs.unshift({
+    date: new Date().toLocaleDateString('pt-BR'),
+    focus, min, rating: selectedRating, note
   });
-  render();
+  try{
+    localStorage.setItem('flightplan_logs', JSON.stringify(logs));
+  }catch(e){ console.error('storage failed', e); }
+  document.getElementById('fMin').value = '';
+  document.getElementById('fNote').value = '';
+  renderLogs();
 }
-
-// ── HELPERS ─────────────────────────────────────────────────
-function getTot(){
-  const t=DB.totals[activeMes];
-  if(activeFilter==='dom')return{...t,pax:t.dom,int:0,lf:t.dom>0?+(t.dom/(t.seats*t.dom/t.pax)).toFixed(4):0};
-  if(activeFilter==='int')return{...t,pax:t.int,dom:0,lf:t.int>0?+(t.int/(t.seats*t.int/t.pax)).toFixed(4):0};
-  return t;
+function renderLogs(){
+  const logs = getLogs();
+  const list = document.getElementById('logList');
+  if(logs.length===0){
+    list.innerHTML = '<div class="empty-state">Nenhuma sessão registrada ainda. Bora começar hoje.</div>';
+  } else {
+    list.innerHTML = logs.map(l => `
+      <div class="log-entry">
+        <div class="ldate">${l.date} · ${l.min}min · confiança ${l.rating}/5</div>
+        <div class="lfocus">${l.focus}</div>
+        ${l.note ? `<div class="lnote">${l.note}</div>` : ''}
+      </div>
+    `).join('');
+  }
+  document.getElementById('statTotal').textContent = logs.length;
+  document.getElementById('statMin').textContent = logs.reduce((a,b)=>a+b.min,0);
+  document.getElementById('statAvg').textContent = logs.length ? (logs.reduce((a,b)=>a+b.rating,0)/logs.length).toFixed(1) : '—';
 }
-function getAl(){
-  const list=(DB.airlines[activeMes]||DB.airlines.ytd).slice();
-  if(activeFilter==='dom') return list.filter(a=>a.dom>0).map(a=>{const tot=getTot();return{...a,pax:a.dom,share:tot.pax>0?+(a.dom/tot.pax).toFixed(4):0};}).sort((a,b)=>b.pax-a.pax);
-  if(activeFilter==='int') return list.filter(a=>a.int>0).map(a=>{const tot=getTot();return{...a,pax:a.int,share:tot.pax>0?+(a.int/tot.pax).toFixed(4):0};}).sort((a,b)=>b.pax-a.pax);
-  return list;
-}
-function getAp(){
-  const list=(DB.airports[activeMes]||DB.airports.ytd).slice();
-  if(activeFilter==='dom') return list.filter(a=>a.dom>0).map(a=>{const tot=getTot();return{...a,pax:a.dom,int:0,share:tot.pax>0?+(a.dom/tot.pax).toFixed(4):0};}).sort((a,b)=>b.pax-a.pax).slice(0,15);
-  if(activeFilter==='int') return list.filter(a=>a.int>0).map(a=>{const tot=getTot();return{...a,pax:a.int,dom:0,share:tot.pax>0?+(a.int/tot.pax).toFixed(4):0};}).sort((a,b)=>b.pax-a.pax).slice(0,15);
-  return list.slice(0,15);
-}
-
-// ── STRIP ────────────────────────────────────────────────────
-function buildStrip(){
-  const el=document.getElementById('monthStrip');
-  if(!el)return;
-  el.innerHTML='';
-  // YTD
-  const yt=DB.totals.ytd;
-  const ytEl=document.createElement('div');
-  ytEl.className='mo-tab ytd'+(activeMes==='ytd'?' active':'');
-  ytEl.innerHTML=`<div class="mname">YTD Jan–Mai</div><div class="mpax">${nk(yt.pax)}</div>
-    <div class="msub"><span class="mlf">${pct(yt.lf)} LF</span><span class="mdom">D ${nk(yt.dom)}</span><span class="mint">I ${nk(yt.int)}</span></div>`;
-  ytEl.onclick=()=>{activeMes='ytd';render();};
-  el.appendChild(ytEl);
-  // Monthly
-  const MSHORT={'2026-01':'Jan','2026-02':'Fev','2026-03':'Mar','2026-04':'Abr','2026-05':'Mai'};
-  DB.meta.months.forEach(m=>{
-    const t=DB.totals[m];
-    const div=document.createElement('div');
-    div.className='mo-tab'+(activeMes===m?' active':'');
-    div.innerHTML=`<div class="mname">${MSHORT[m]}-26</div><div class="mpax">${nk(t.pax)}</div>
-      <div class="msub"><span class="mlf">${pct(t.lf)} LF</span><span class="mdom">D ${nk(t.dom)}</span><span class="mint">I ${nk(t.int)}</span></div>`;
-    div.onclick=()=>{activeMes=m;render();};
-    el.appendChild(div);
-  });
-}
-
-// ── TOTALS ────────────────────────────────────────────────────
-function buildTotals(){
-  const t=getTot();
-  const MSHORT={'2026-01':'Jan','2026-02':'Fev','2026-03':'Mar','2026-04':'Abr','2026-05':'Mai'};
-  const label=activeMes==='ytd'?'Jan–Mai 2026':(MSHORT[activeMes]||activeMes)+'-26';
-  const hpax=document.getElementById('hdr-pax');
-  const hatm=document.getElementById('hdr-atm');
-  const hlf=document.getElementById('hdr-lf');
-  if(hpax)hpax.textContent=nk(t.pax);
-  if(hatm)hatm.textContent=nk(t.atm);
-  if(hlf)hlf.textContent=pct(t.lf);
-  const tr=document.getElementById('totalsRow');
-  if(!tr)return;
-  const seg=activeFilter==='dom'?'Doméstico':activeFilter==='int'?'Internacional':'Todos os segmentos';
-  tr.innerHTML=`
-    <div class="tot t-n"><div class="tot-l">PAX · ${label} · ${seg}</div><div class="tot-v">${nk(t.pax)}</div><div class="tot-s">${nk(t.atm)} ATM · ${nk(t.seats)} seats</div></div>
-    <div class="tot t-p"><div class="tot-l">Load Factor</div><div class="tot-v" style="color:var(--purple)">${pct(t.lf)}</div><div class="tot-s">Média ponderada</div></div>
-    <div class="tot t-d"><div class="tot-l">Doméstico</div><div class="tot-v" style="color:var(--dom)">${nk(t.dom)}</div><div class="tot-s">${t.pax?pct(t.dom/t.pax):'—'} do total</div></div>
-    <div class="tot t-i"><div class="tot-l">Internacional</div><div class="tot-v" style="color:var(--int)">${nk(t.int)}</div><div class="tot-s">${t.pax?pct(t.int/t.pax):'—'} do total</div></div>`;
-}
-
-// ── AIRLINES ─────────────────────────────────────────────────
-function buildAirlines(){
-  const list=getAl();
-  const tb=document.getElementById('tbAirline');
-  if(!tb)return;
-  const sub=document.getElementById('al-sub');
-  if(sub)sub.textContent='DEP · '+(activeFilter==='dom'?'Doméstico':activeFilter==='int'?'Internacional':'Grupo Pax');
-  if(!list.length){tb.innerHTML='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--t3)">Sem dados</td></tr>';return;}
-  const maxShare=list[0].share||.001;
-  tb.innerHTML=list.map((a,i)=>{
-    const info=alInfo(a.code);
-    const src=logoUrl(info.iata);
-    return `<tr>
-      <td style="width:20px;padding-right:2px"><span class="rnk ${rnkClass(i)}">${i+1}</span></td>
-      <td class="al-logo-cell">
-        <img class="al-logo" src="${src}" alt="${info.name}"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"
-          onload="this.nextElementSibling.style.display='none'">
-        <span class="al-logo-fb" style="display:none;background:${info.color};color:${info.txt}">${a.code.slice(0,3)}</span>
-      </td>
-      <td>
-        <div class="al-name">${info.name}</div>
-        <div class="al-sub">${info.sub}</div>
-      </td>
-      <td class="nr" style="font-weight:700">${nk(a.pax)}</td>
-      <td class="nr">
-        <div class="sb">
-          <div class="sb-bg" style="width:58px"><div class="sb-fill" style="width:${Math.min(a.share/maxShare*100,100).toFixed(0)}%;background:${info.color}"></div></div>
-          <span class="sb-v">${pct(a.share)}</span>
-        </div>
-      </td>
-      <td class="nr"><span class="lf ${lfClass(a.lf)}">${pct(a.lf)}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-// ── AIRPORTS ─────────────────────────────────────────────────
-function buildAirports(){
-  const list=getAp();
-  const tb=document.getElementById('tbAirport');
-  if(!tb)return;
-  const sub=document.getElementById('ap-sub');
-  if(sub)sub.textContent='DEP · '+(activeFilter==='dom'?'Doméstico':activeFilter==='int'?'Internacional':'Todos');
-  if(!list.length){tb.innerHTML='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--t3)">Sem dados</td></tr>';return;}
-  const maxPax=list[0].pax||1;
-  tb.innerHTML=list.map((a,i)=>{
-    const iata=ICAO2[a.icao]||a.icao;
-    const dw=a.pax>0?Math.round(a.dom/a.pax*48):0;
-    const iw=a.pax>0?Math.round(a.int/a.pax*48):0;
-    return `<tr>
-      <td style="width:20px;padding-right:2px"><span class="rnk ${rnkClass(i)}">${i+1}</span></td>
-      <td>
-        <div style="font-size:13px;font-weight:700">${iata}</div>
-        <div class="ap-seg"><div class="ap-d" style="width:${dw}px"></div>${a.int>0?`<div class="ap-i" style="width:${iw}px"></div>`:''}</div>
-      </td>
-      <td class="nr" style="font-weight:700">${nk(a.pax)}</td>
-      <td class="nr">
-        <div class="sb"><div class="sb-bg" style="width:58px"><div class="sb-fill" style="width:${Math.min(a.pax/maxPax*100,100).toFixed(0)}%;background:var(--navy)"></div></div><span class="sb-v">${pct(a.share)}</span></div>
-      </td>
-      <td class="nr"><span class="lf ${lfClass(a.lf)}">${pct(a.lf)}</span></td>
-      <td style="padding-left:6px">
-        <div class="di">
-          <span class="di-d">${nk(a.dom)}</span>
-          ${a.int>0?`<span class="di-i">${nk(a.int)}</span>`:''}
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// ── CONTEXT TABLE ─────────────────────────────────────────────
-function buildCtx(){
-  const tb=document.getElementById('ctxTable');
-  if(!tb)return;
-  const MSHORT={'2026-01':'Jan','2026-02':'Fev','2026-03':'Mar','2026-04':'Abr','2026-05':'Mai'};
-  tb.innerHTML=DB.meta.months.map(m=>{
-    const t=DB.totals[m];
-    return `<tr class="${activeMes===m?'active-mo':''}">
-      <td>${MSHORT[m]}</td>
-      <td class="nr">${nk(t.pax)}</td>
-      <td class="nr" style="color:var(--dom)">${nk(t.dom)}</td>
-      <td class="nr" style="color:var(--int)">${nk(t.int)}</td>
-      <td class="nr"><span class="lf ${lfClass(t.lf)}">${pct(t.lf)}</span></td>
-      <td class="nr">${nk(t.atm)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── TREND CHART ───────────────────────────────────────────────
-function buildTrend(){
-  const canvas=document.getElementById('trendChart');
-  if(!canvas)return;
-  if(trendChart)trendChart.destroy();
-  const MSHORT={'2026-01':'Jan','2026-02':'Fev','2026-03':'Mar','2026-04':'Abr','2026-05':'Mai'};
-  trendChart=new Chart(canvas.getContext('2d'),{
-    type:'bar',
-    data:{
-      labels:DB.meta.months.map(m=>MSHORT[m]),
-      datasets:[
-        {label:'DOM',data:DB.meta.months.map(m=>Math.round(DB.totals[m].dom/1000)),backgroundColor:'#000091',borderRadius:2,borderSkipped:'bottom'},
-        {label:'INT',data:DB.meta.months.map(m=>Math.round(DB.totals[m].int/1000)),backgroundColor:'#00aabc',borderRadius:2,borderSkipped:'bottom'}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{
-        title:c=>`${c[0].label}-26`,
-        label:c=>`${c.dataset.label}: ${c.raw.toLocaleString('pt-BR')}k`
-      }}},
-      scales:{
-        x:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:'#666'},border:{display:false}},
-        y:{stacked:true,grid:{color:'#e6e8e9',lineWidth:.5},ticks:{font:{size:10},color:'#666',callback:v=>v>=1000?(v/1000).toFixed(0)+'M':v+'k'},border:{display:false}}
-      }
-    }
-  });
-}
-
-function render(){
-  buildStrip();
-  buildTotals();
-  buildAirlines();
-  buildAirports();
-  buildCtx();
-}
-
-loadData();
+renderLogs();
 </script>
 </body>
 </html>
