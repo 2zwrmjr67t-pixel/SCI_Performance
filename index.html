@@ -1,622 +1,696 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flight Plan — Route to Fluência</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Bola Parada · Elenco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-  :root{
-    --ink:#0F1B2B;
-    --panel:#16273B;
-    --panel-2:#1D3149;
-    --paper:#F3EFE6;
-    --paper-dim:#D9D2C2;
-    --amber:#C88A3B;
-    --amber-soft:#E3B573;
-    --signal:#4C8C6B;
-    --brick:#A6472E;
-    --line: rgba(243,239,230,0.14);
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background: var(--ink);
-    color: var(--paper);
-    font-family:'Space Grotesk', sans-serif;
-    min-height:100vh;
-    padding-bottom:60px;
-  }
-  .mono{ font-family:'IBM Plex Mono', monospace; }
-  .serif{ font-family:'Lora', serif; }
+/* Protótipo 3D: uma cena WebGL fixa ao fundo; a rolagem conduz câmera e jogada; textos e rótulos em camada HTML por cima.
+   Visual escuro por escolha (nuvem de pontos sobre preto), cores explícitas. */
+:root{
+  color-scheme:dark;
+  --ink:#0F0D0D;--ink-2:#171414;--line:#2E2828;--line-2:#3D3535;
+  --fg:#F3EFEA;--fg-2:#C8BFB7;--fg-3:#968D85;
+  --red:#D3122C;--red-hi:#EF3A50;--red-soft:#F4B4AE;--ball:#F2C14E;--pro:#86B3CC;--ok:#73C28E;--warn:#E6B64C;
+  --display:'Archivo','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --gl:max(16px,env(safe-area-inset-left,0px));--gr:max(16px,env(safe-area-inset-right,0px));
+}
+@media (min-width:760px){:root{--gl:max(40px,env(safe-area-inset-left,0px));--gr:max(40px,env(safe-area-inset-right,0px))}}
+body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(120% 90% at 50% 45%,rgba(15,13,13,0) 55%,rgba(15,13,13,.75) 100%)}
+.spacer{height:1100vh;position:relative;z-index:0}
+.brk{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2);margin:0}
+.brk::before{content:"[ ";color:var(--red-hi)}.brk::after{content:" ]";color:var(--red-hi)}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;line-height:1;padding:4px 7px;border-radius:999px;border:1px solid;white-space:nowrap;vertical-align:2px}
+.tag.v{color:var(--ok);border-color:rgba(115,194,142,.45);background:rgba(115,194,142,.08)}
+.tag.i{color:var(--warn);border-color:rgba(230,182,76,.45);background:rgba(230,182,76,.08)}
 
-  /* ===== HERO / BOARDING PASS ===== */
-  .hero{
-    background: linear-gradient(180deg, #0F1B2B 0%, #132236 100%);
-    border-bottom: 1px dashed var(--line);
-    padding: 28px 20px 22px;
-    position:relative;
-    overflow:hidden;
-  }
-  .hero::after{
-    content:"";
-    position:absolute; top:0; right:-40px; width:180px; height:180px;
-    background: radial-gradient(circle, rgba(200,138,59,0.12) 0%, transparent 70%);
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-    color: var(--amber-soft); margin-bottom:10px;
-  }
-  .hero h1{
-    font-size: clamp(28px, 7vw, 40px);
-    font-weight:700; line-height:1.05; letter-spacing:-0.01em;
-    max-width: 480px;
-  }
-  .hero h1 em{ color:var(--amber-soft); font-style:normal; }
-  .route-strip{
-    display:flex; align-items:center; gap:10px;
-    margin-top:20px; font-family:'IBM Plex Mono', monospace; font-size:13px;
-    color: var(--paper-dim);
-  }
-  .route-strip .code{ color:var(--paper); font-weight:600; font-size:15px; }
-  .route-strip .dash{ flex:1; border-top:1px dashed var(--line); position:relative; height:1px; }
-  .route-strip .plane{ font-size:14px; }
-  .countdown-row{
-    display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;
-  }
-  .count-box{
-    background: var(--panel);
-    border:1px solid var(--line);
-    border-radius:4px;
-    padding:10px 14px;
-    min-width:82px;
-  }
-  .count-box .num{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:var(--amber-soft); }
-  .count-box .lbl{ font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-dim); margin-top:2px; }
+/* HUD */
+.hud{position:fixed;top:0;left:0;right:0;z-index:10;padding-top:env(safe-area-inset-top,0px);pointer-events:none}
+.hud-in{height:52px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 var(--gr) 0 var(--gl)}
+.brand{font-family:var(--display);font-weight:800;font-stretch:80%;font-size:18px;letter-spacing:.04em;text-transform:uppercase}
+.brand{white-space:nowrap;flex:none}.brand span{color:var(--red-hi)}.brand .d3{color:var(--fg-3)}@media (max-width:520px){.brand .d3{display:none}}
+.hud .ch{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hud-bar{height:2px;background:rgba(61,53,53,.55)}
+.hud-bar i{display:block;height:100%;background:var(--red);transform-origin:0 50%;transform:scaleX(0)}
+.corner{position:fixed;z-index:10;bottom:max(14px,env(safe-area-inset-bottom,0px));right:var(--gr);display:flex;gap:14px;align-items:center}
+.corner a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-2);text-decoration:none;border:1px solid var(--line-2);border-radius:999px;padding:8px 12px;background:rgba(15,13,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.corner a:hover{color:var(--fg);border-color:var(--fg-3)}
+.jump{display:flex;gap:6px}@media (max-width:620px){.jump{display:none}}
 
-  /* ===== TABS ===== */
-  .tabs{
-    display:flex; overflow-x:auto; gap:2px;
-    background: var(--panel);
-    border-bottom:1px solid var(--line);
-    position:sticky; top:0; z-index:10;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tab{
-    flex:0 0 auto;
-    padding:14px 16px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px; letter-spacing:0.04em;
-    color: var(--paper-dim);
-    background:none; border:none; cursor:pointer;
-    border-bottom:2px solid transparent;
-    white-space:nowrap;
-  }
-  .tab.active{ color:var(--amber-soft); border-bottom-color:var(--amber); }
+/* painéis de texto */
+.panel{position:fixed;z-index:5;opacity:0;pointer-events:none;will-change:opacity,transform}
+.panel.on{pointer-events:auto}
+.p-hero{left:var(--gl);right:var(--gr);bottom:max(90px,calc(env(safe-area-inset-bottom,0px) + 80px))}
+.giant{font-family:var(--display);font-weight:800;font-stretch:75%;text-transform:uppercase;line-height:.8;letter-spacing:-.012em;font-size:clamp(52px,min(12.5vw,14.5vh),200px);margin:14px 0 0}
+.giant em{font-style:normal;color:var(--red-hi);display:block}
+.p-hero .sub{margin-top:22px;display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.p-hero{text-shadow:0 2px 24px rgba(15,13,13,.9)}.p-hero .sub p{max-width:44ch;color:var(--fg-2);font-size:16px;line-height:1.5;margin:0}
+.cue{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.cue i{width:1px;height:38px;background:linear-gradient(var(--red-hi),rgba(239,58,80,0));animation:cue 2s ease-in-out infinite;transform-origin:top}
+@keyframes cue{0%{transform:scaleY(0)}55%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+.p-mid{left:var(--gl);right:var(--gr);top:50%;transform:translateY(-50%)}
+.bigq{font-family:var(--display);font-stretch:80%;font-weight:750;font-size:clamp(36px,6vw,88px);line-height:.98;max-width:15ch;margin:16px 0 0;letter-spacing:-.008em;text-shadow:0 2px 30px rgba(0,0,0,.6)}
+.bigq em{font-style:normal;color:var(--red-hi)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px;max-width:900px}
+@media (max-width:760px){.facts{grid-template-columns:1fr}}
+.fact{border:1px solid var(--line-2);border-radius:14px;padding:16px 18px;background:rgba(15,13,13,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:grid;gap:8px}
+.fact b{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:clamp(48px,6vw,76px);line-height:.85}
+.fact b.r{color:var(--red-hi)}
+.fact p{margin:0;font-size:14.5px;color:var(--fg-2);line-height:1.4}
+@media (max-width:760px){.fact{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px;padding:12px 14px}.fact b{font-size:44px}.fact .tag{grid-column:2}}
 
-  .view{ display:none; padding: 22px 18px 10px; max-width:640px; margin:0 auto; }
-  .view.active{ display:block; }
+.p-play{left:var(--gl);bottom:max(76px,calc(env(safe-area-inset-bottom,0px) + 66px));width:min(430px,calc(100vw - 32px));display:grid;gap:12px;padding:20px;border:1px solid var(--line-2);border-radius:18px;background:rgba(15,13,13,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-sizing:border-box}
+.pname{font-family:var(--display);font-weight:800;font-stretch:75%;text-transform:uppercase;font-size:clamp(32px,3.6vw,48px);line-height:.88;margin:0}
+.psub{margin:0;color:var(--fg-2);font-size:14px}
+.pseg{display:flex;gap:4px}
+.pseg span{flex:1;height:3px;background:var(--line-2);overflow:hidden}
+.pseg span i{display:block;height:100%;background:var(--red-hi);transform-origin:0 50%;transform:scaleX(0)}
+.pstep{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.pstep span{color:var(--fg-3)}
+.pcap{margin:0;font-size:14.5px;line-height:1.5;color:var(--fg-2);min-height:4.5em}
+.pcap b{color:var(--fg);font-weight:600}
+.pref{margin:0;display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 12px;padding-top:12px;border-top:1px solid var(--line-2);font-size:12.5px;line-height:1.45;color:var(--fg-2)}
+.pref dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding-top:2px}
+.pref dd{margin:0}
+.pref .dfh{color:var(--fg-3)}
+@media (max-width:760px){.pref .dx{display:none}.pref{grid-template-columns:1fr;gap:2px;font-size:12px}}
+@media (max-width:760px){.p-play{padding:14px 16px;gap:8px}.pcap{font-size:14px;min-height:0}.psub{display:none}}
 
-  h2.section-title{
-    font-size:20px; font-weight:600; margin-bottom:4px;
-  }
-  .section-sub{
-    color:var(--paper-dim); font-size:13px; margin-bottom:20px; line-height:1.5;
-  }
+.p-end{left:var(--gl);right:var(--gr);top:50%;transform:translateY(-50%)}
+.p-end .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin-top:26px;max-width:1000px}
+.p-end .grid div{border:1px solid var(--line-2);border-radius:14px;padding:16px 18px;background:rgba(15,13,13,.8);font-size:14.5px;color:var(--fg-2);line-height:1.45}
+.p-end .grid b{display:block;color:var(--fg);font-size:16px;margin-bottom:6px}
 
-  /* ===== ROADMAP ===== */
-  .phase{
-    border-left:2px solid var(--line);
-    padding-left:18px; margin-bottom:22px; position:relative;
-  }
-  .phase::before{
-    content:""; position:absolute; left:-6px; top:2px;
-    width:10px; height:10px; border-radius:50%;
-    background: var(--panel); border:2px solid var(--amber);
-  }
-  .phase.done::before{ background: var(--signal); border-color:var(--signal); }
-  .phase-dates{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft); letter-spacing:0.05em; }
-  .phase-title{ font-size:16px; font-weight:600; margin:4px 0 6px; }
-  .phase-desc{ font-size:13.5px; color:var(--paper-dim); line-height:1.55; margin-bottom:8px;}
-  .phase ul{ list-style:none; }
-  .phase li{ font-size:13px; color:var(--paper); padding:3px 0 3px 16px; position:relative; line-height:1.5;}
-  .phase li::before{ content:"—"; position:absolute; left:0; color:var(--amber); }
+/* rótulos presos à cena */
+#callouts{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.co{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
+.co .dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 4px rgba(243,239,234,.15)}
+.co .stem{position:absolute;left:0;bottom:4px;width:1px;height:36px;background:linear-gradient(rgba(243,239,234,.9),rgba(243,239,234,.2))}
+.co .lbl{position:absolute;left:-1px;bottom:40px;white-space:nowrap;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:rgba(15,13,13,.8);border:1px solid var(--line-2);padding:6px 9px;border-radius:6px}
+.co .lbl::before{content:"[ ";color:var(--red-hi)}.co .lbl::after{content:" ]";color:var(--red-hi)}
+.co.ball .dot{background:var(--ball);box-shadow:0 0 0 4px rgba(242,193,78,.2)}
+.co.pro .dot{background:var(--pro)}
+.co.left .lbl{left:auto;right:-1px}
+@media (max-width:760px){.co .lbl{font-size:9.5px;padding:5px 7px;letter-spacing:.08em}.co .stem{height:24px}.co .lbl{bottom:28px}}
 
-  .habit-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:6px;
-    padding:16px; margin-top:24px;
-  }
-  .habit-card .htitle{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;}
-  .habit-card p{ font-size:13.5px; color:var(--paper-dim); line-height:1.6; }
-  .habit-card p + p { margin-top:8px; }
-
-  /* ===== FLASHCARDS ===== */
-  .cat-row{ display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; padding-bottom:4px;}
-  .cat-btn{
-    flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
-    padding:7px 12px; border-radius:20px; border:1px solid var(--line);
-    background:transparent; color:var(--paper-dim); cursor:pointer; white-space:nowrap;
-  }
-  .cat-btn.active{ background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600;}
-
-  .flip-wrap{ perspective:1200px; margin-bottom:16px; }
-  .flip-card{
-    position:relative; width:100%; min-height:180px;
-    transform-style:preserve-3d; transition:transform 0.5s;
-    cursor:pointer;
-  }
-  .flip-card.flipped{ transform: rotateY(180deg); }
-  .flip-face{
-    position:absolute; inset:0; backface-visibility:hidden;
-    border-radius:8px; padding:22px;
-    display:flex; flex-direction:column; justify-content:center;
-    border:1px solid var(--line);
-  }
-  .flip-front{ background: var(--panel-2); }
-  .flip-back{ background: var(--paper); color:var(--ink); transform: rotateY(180deg); }
-  .flip-tag{ font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--amber-soft); margin-bottom:10px;}
-  .flip-back .flip-tag{ color:var(--brick); }
-  .flip-term{ font-size:22px; font-weight:600; line-height:1.25; }
-  .flip-back .flip-term{ font-family:'Lora',serif; font-size:16px; font-weight:400; font-style:italic; line-height:1.5; }
-  .flip-hint{ font-size:11px; color:var(--paper-dim); margin-top:14px; }
-  .flip-back .flip-hint{ color:#8a8474; }
-
-  .card-nav{ display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
-  .nav-btn{
-    background:var(--panel); border:1px solid var(--line); color:var(--paper);
-    padding:9px 16px; border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer;
-  }
-  .nav-btn:active{ background:var(--panel-2); }
-  .card-count{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--paper-dim); }
-
-  /* ===== SCRIPTS ===== */
-  .script-block{
-    background:var(--panel); border:1px solid var(--line); border-radius:6px;
-    padding:16px 18px; margin-bottom:14px;
-  }
-  .script-block .stitle{ font-weight:600; font-size:14.5px; margin-bottom:10px; color:var(--amber-soft);}
-  .script-line{ font-family:'Lora',serif; font-size:14.5px; line-height:1.6; padding:8px 0; border-top:1px solid var(--line); }
-  .script-line:first-of-type{ border-top:none; }
-  .script-line .pt{ display:block; font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:var(--paper-dim); margin-top:3px; }
-
-  /* ===== TRACKER ===== */
-  .tracker-form{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:20px;}
-  .form-row{ margin-bottom:12px; }
-  .form-row label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--paper-dim); margin-bottom:6px;}
-  .form-row select, .form-row input, .form-row textarea{
-    width:100%; background:var(--ink); border:1px solid var(--line); color:var(--paper);
-    padding:10px; border-radius:4px; font-family:'Space Grotesk',sans-serif; font-size:14px;
-  }
-  .rating-row{ display:flex; gap:8px; }
-  .rate-btn{
-    flex:1; padding:10px 0; border-radius:4px; border:1px solid var(--line);
-    background:var(--ink); color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; cursor:pointer;
-  }
-  .rate-btn.sel{ background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600;}
-  .submit-btn{
-    width:100%; background:var(--signal); color:var(--ink); border:none;
-    padding:12px; border-radius:5px; font-weight:600; font-family:'Space Grotesk',sans-serif;
-    font-size:14px; cursor:pointer; margin-top:6px;
-  }
-  .log-entry{
-    border-left:2px solid var(--amber); padding:10px 0 10px 14px; margin-bottom:10px;
-  }
-  .log-entry .ldate{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber-soft);}
-  .log-entry .lfocus{ font-size:14px; font-weight:600; margin:3px 0;}
-  .log-entry .lnote{ font-size:12.5px; color:var(--paper-dim); }
-  .empty-state{ color:var(--paper-dim); font-size:13px; text-align:center; padding:30px 0; }
-  .stat-row{ display:flex; gap:10px; margin-bottom:20px; }
-  .stat-box{ flex:1; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center;}
-  .stat-box .snum{ font-family:'IBM Plex Mono',monospace; font-size:22px; color:var(--amber-soft); font-weight:600;}
-  .stat-box .slbl{ font-size:10px; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:2px;}
-
-  /* ===== POCKET / CHEAT SHEET ===== */
-  .pocket-group{ margin-bottom:22px; }
-  .pocket-group h3{ font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(--amber-soft); font-family:'IBM Plex Mono',monospace; margin-bottom:10px; }
-  .pocket-line{
-    background:var(--panel); border:1px solid var(--line); border-radius:6px;
-    padding:12px 14px; margin-bottom:8px; font-size:14px; line-height:1.5;
-  }
-  .pocket-line .pt-label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--paper-dim); margin-top:4px;}
-  .print-note{ font-size:12px; color:var(--paper-dim); margin-top:10px; text-align:center; }
-
-  @media print{
-    .tabs, .hero{ display:none; }
-    body{ background:white; color:black; }
-  }
+.pov{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;box-shadow:inset 0 0 160px 40px rgba(15,13,13,.85)}
+.pov .brk{position:absolute;top:calc(66px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(15,13,13,.7);padding:6px 10px;border-radius:6px;border:1px solid var(--line-2)}
+.pov .ret{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border:1px solid rgba(243,239,234,.55);border-radius:50%}
+.pov .ret::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--red-hi)}
+@media (max-width:760px){.pov .brk{font-size:10px;letter-spacing:.08em}}
+.p-roster{right:var(--gr);top:calc(66px + env(safe-area-inset-top,0px));width:330px;padding:16px 18px;border:1px solid var(--line-2);border-radius:16px;background:rgba(15,13,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-sizing:border-box;max-height:calc(100vh - 160px);overflow:auto}
+#roster{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+#roster li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:start}
+#roster .ch2{height:24px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;background:var(--red);color:#fff}
+#roster .ch2.pro{background:transparent;border:1.5px solid var(--pro);color:var(--fg)}
+#roster b{display:block;font-size:13px;font-weight:600;line-height:1.2}
+#roster b.open{color:var(--fg-3)}
+#roster span.d{display:block;font-size:11px;color:var(--fg-2);line-height:1.35;margin-top:2px}
+#roster .ae{font-family:var(--display);font-stretch:80%;font-weight:800;font-size:20px;line-height:1;color:var(--fg)}
+#roster .ae.hi{color:var(--red-hi)}
+.rsrc{margin:12px 0 0;font-size:11.5px;color:var(--fg-3);line-height:1.4}
+@media (max-width:1100px){.p-roster{display:none}}
+#fallback{position:fixed;inset:0;z-index:20;display:none;place-items:center;padding:24px;text-align:center;background:var(--ink)}
+#fallback p{max-width:44ch;color:var(--fg-2)}
+#fallback a{color:var(--red-soft)}
+@media (prefers-reduced-motion:reduce){.cue i{animation:none}}
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="eyebrow">Fraport Brasil · Business Development</div>
-  <h1>Flight <em>Plan</em><br>Route to Fluência</h1>
-  <div class="route-strip">
-    <span class="code">POA</span>
-    <span class="dash"><span class="plane" style="position:absolute; left:50%; top:-9px;">✈</span></span>
-    <span class="code">FRA</span>
-  </div>
-  <div id="countdown" class="countdown-row"></div>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div id="callouts" aria-hidden="true"></div>
+<div id="pov" class="pov" aria-hidden="true"><p class="brk">Visão do Z1 · primeira pessoa</p><i class="ret"></i></div>
+
+<div class="hud">
+  <div class="hud-in"><span class="brand">Bola <span>parada</span><span class="d3"> · 3D</span></span><span class="ch" id="ch">[ 00 · Abertura ]</span></div>
+  <div class="hud-bar"><i id="bar"></i></div>
 </div>
 
-<div class="tabs">
-  <button class="tab active" data-view="roadmap">ROADMAP</button>
-  <button class="tab" data-view="vocab">VOCABULÁRIO</button>
-  <button class="tab" data-view="scripts">NEGOCIAÇÃO</button>
-  <button class="tab" data-view="tracker">TRACKER</button>
-  <button class="tab" data-view="pocket">DE BOLSO</button>
-</div>
+<section class="panel p-hero" data-a="0" data-b=".94" aria-label="Abertura">
+  <p class="brk">SC Internacional · GT Futebol · Teste com elenco · uso interno</p>
+  <h1 class="giant">Bola parada<em>a leitura de um lance</em></h1>
+  <div class="sub"><p>Teste: as quatro rotinas com as funções ocupadas pelo elenco atual e os duelos aéreos de cada um no Sofascore.</p><p class="cue"><i></i>Role para entrar</p></div>
+</section>
 
-<!-- ROADMAP -->
-<div class="view active" id="view-roadmap">
-  <h2 class="section-title">4 fases até Riyadh</h2>
-  <p class="section-sub">78 dias reais até o evento — realocado para Frankfurt (21–23 out, Messe Frankfurt) após a mudança de sede. Sprint principal de 60 dias + buffer de polimento.</p>
+<section class="panel p-mid" data-a="1.21" data-b="2.15" aria-label="Tese">
+  <p class="brk">Tese do estudo</p>
+  <p class="bigq">A altura é um recurso. <em>A organização</em> é o mecanismo de aproveitá-la.</p>
+</section>
 
-  <div class="phase" id="phase1">
-    <div class="phase-dates">04 — 17 AGO · SEMANAS 1-2</div>
-    <div class="phase-title">Diagnóstico + Base</div>
-    <div class="phase-desc">Não é gramática nova — é destravar o que tu já sabe. O objetivo é reduzir o tempo entre "pensar" e "falar".</div>
-    <ul>
-      <li>Grave 3x/semana respondendo perguntas espontâneas em áudio (2min, sem preparo)</li>
-      <li>Reescute e marque onde travou: busca de palavra, medo de erro, ou tradução mental?</li>
-      <li>Shadowing diário 10min com conteúdo real de aviação (podcasts de route development)</li>
-    </ul>
+<section class="panel p-mid" data-a="2.42" data-b="3.47" aria-label="Ponto de partida">
+  <p class="brk">Ponto de partida · Brasileirão 2026</p>
+  <p class="bigq" style="font-size:clamp(30px,4.4vw,60px)">Alvo aéreo existe. <em>Conversão, não.</em></p>
+  <div class="facts">
+    <div class="fact"><b class="r">1</b><p>gol de cabeça do elenco em todo o campeonato</p><span class="tag v">Verificado · Sofascore</span></div>
+    <div class="fact"><b>0/17</b><p>faltas diretas convertidas; sem especialista evidente</p><span class="tag v">Verificado · Sofascore</span></div>
+    <div class="fact"><b>74%</b><p>melhor aproveitamento aéreo entre os zagueiros do elenco</p><span class="tag v">Verificado · Sofascore</span></div>
   </div>
+</section>
 
-  <div class="phase" id="phase2">
-    <div class="phase-dates">18 AGO — 14 SET · SEMANAS 3-6</div>
-    <div class="phase-title">Vocabulário técnico + Speaking ativo</div>
-    <div class="phase-desc">Construir o vocabulário específico do teu mundo (route development, incentivos, negociação) e treinar produção ativa, não passiva.</div>
-    <ul>
-      <li>15 termos novos/semana via flashcards (aba Vocabulário) — revisão espaçada</li>
-      <li>2x/semana: grave um "elevator pitch" do caso POA–MAD em 90 segundos</li>
-      <li>1x/semana: sessão de conversação real (italki, tandem, ou colega fluente) focada em negociação</li>
-    </ul>
+<section class="panel p-play" data-a="3.72" data-b="31.5" aria-label="Rotina">
+  <p class="brk" id="pbrk"></p>
+  <h2 class="pname" id="pname"></h2>
+  <p class="psub" id="psub"></p>
+  <div class="pseg" id="pseg"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div>
+  <p class="pstep" id="pstep"></p>
+  <p class="pcap" id="pcap" aria-live="polite"></p>
+  <dl class="pref"><dt>Referência</dt><dd id="pref"></dd><dt class="dx">Dado</dt><dd class="dx" id="pdado"></dd><dt class="dx">Adversário simulado</dt><dd class="dx" id="pdfn"></dd></dl>
+</section>
+
+<aside class="panel p-roster" data-a="3.72" data-b="99" aria-label="Escalação no lance">
+  <p class="brk" id="rtitle">Escalação no lance</p>
+  <ul id="roster"></ul>
+  <p class="rsrc">% nos rótulos = duelos aéreos ganhos. Sofascore, Brasileirão 2026, extração de 29/10/2026; inclui bola rolando e bola parada. Funções de teste. <span class="tag i">Inferência</span></p>
+</aside>
+
+<section class="panel p-end" data-a="31.85" data-b="99" aria-label="Próximas partes">
+  <p class="brk">Teste com elenco · para validar</p>
+  <p class="bigq" style="font-size:clamp(32px,4.6vw,64px)">Os números <em>sustentam as funções?</em></p>
+  <div class="grid">
+    <div><b>O que os dados apoiam</b>Maripán (74%) na zona principal e Juninho (61%) como Z3. Alerrandro e Vitinho, com cerca de 30% no alto, como isca e bloqueio. Villagra (4,3 recuperações por jogo) e Bernabei na proteção. <span class="tag i">Inferência</span></div>
+    <div><b>O que pede atenção</b>Bruno Gomes como Z2: 175 cm e 54% no alto, abaixo de Victor Gabriel e Juninho (61%) e de Mercado (56%). Alan Patrick acerta 29% dos cruzamentos e está 0/10 em faltas diretas.</div>
+    <div><b>Limitações</b>Duelos aéreos misturam bola rolando e bola parada. Amostras pequenas (Maripán 11 jogos, Juninho 14). Defesa adversária simulada. Escalação para teste, não recomendação.</div>
   </div>
+</section>
 
-  <div class="phase" id="phase3">
-    <div class="phase-dates">15 SET — 05 OUT · SEMANAS 7-9</div>
-    <div class="phase-title">Simulação de cenários da feira</div>
-    <div class="phase-desc">Role-play do que vai acontecer de verdade: reunião marcada, encontro casual no corredor, pergunta que tu não esperava.</div>
-    <ul>
-      <li>Use a aba Negociação como roteiro-base e improvise variações</li>
-      <li>Simule objeções: "por que Porto Alegre e não outro hub do Cone Sul?"</li>
-      <li>Pratique small talk de abertura e fechamento de reunião (aba De Bolso)</li>
-    </ul>
-  </div>
+<div class="corner"><nav class="jump" id="jump" aria-label="Ir para a rotina"></nav></div>
+<div class="spacer" aria-hidden="true"></div>
+<div id="fallback"><div><p class="brk">Sem 3D neste navegador</p><p>O navegador não iniciou o WebGL. Tente outro navegador ou ative a aceleração de hardware.</p></div></div>
 
-  <div class="phase" id="phase4">
-    <div class="phase-dates">06 — 17 OUT · SEMANAS 10-11</div>
-    <div class="phase-title">Polimento + revisão de emergência</div>
-    <div class="phase-desc">Menos volume, mais precisão. Foco nas frases de recuperação para quando travar na hora H.</div>
-    <ul>
-      <li>Revise só o que errou nas simulações anteriores</li>
-      <li>Memorize as 10 frases de recuperação da aba De Bolso</li>
-      <li>Última semana: reduza intensidade, mantenha só manutenção leve</li>
-    </ul>
-  </div>
-
-  <div class="habit-card">
-    <div class="htitle">Hábito mínimo diário (dias corridos)</div>
-    <p><strong>15-20min:</strong> 10 flashcards + 1 gravação de 90s respondendo uma pergunta aleatória em inglês. Registra na aba Tracker.</p>
-    <p><strong>Quando der bloco maior (2-3x/semana):</strong> sessão de conversação real + role-play de um cenário completo da aba Negociação.</p>
-  </div>
-</div>
-
-<!-- VOCAB -->
-<div class="view" id="view-vocab">
-  <h2 class="section-title">Vocabulário técnico</h2>
-  <p class="section-sub">Toca no card pra virar. Desliza entre categorias.</p>
-  <div class="cat-row" id="catRow"></div>
-  <div class="flip-wrap">
-    <div class="flip-card" id="flipCard">
-      <div class="flip-face flip-front">
-        <div class="flip-tag" id="cardTagFront">TERMO</div>
-        <div class="flip-term" id="cardTerm"></div>
-        <div class="flip-hint">toca para ver o significado</div>
-      </div>
-      <div class="flip-face flip-back">
-        <div class="flip-tag" id="cardTagBack">SIGNIFICADO</div>
-        <div class="flip-term" id="cardDef"></div>
-        <div class="flip-hint" id="cardEx"></div>
-      </div>
-    </div>
-  </div>
-  <div class="card-nav">
-    <button class="nav-btn" onclick="prevCard()">← anterior</button>
-    <span class="card-count" id="cardCount"></span>
-    <button class="nav-btn" onclick="nextCard()">próxima →</button>
-  </div>
-</div>
-
-<!-- SCRIPTS -->
-<div class="view" id="view-scripts">
-  <h2 class="section-title">Roteiros de negociação</h2>
-  <p class="section-sub">Estrutura, não decoreba. Adapta ao teu tom natural.</p>
-
-  <div class="script-block">
-    <div class="stitle">1. Abrindo uma reunião</div>
-    <div class="script-line">"Thanks for making time — I know the schedule here is packed."<span class="pt">Agradece de forma direta, reconhece a correria do evento.</span></div>
-    <div class="script-line">"Before we dive in, quick context on where we're coming from at Fraport Brasil."<span class="pt">Sinaliza que vai contextualizar antes do pitch.</span></div>
-  </div>
-
-  <div class="script-block">
-    <div class="stitle">2. Apresentando o caso de rota</div>
-    <div class="script-line">"The catchment area around Porto Alegre supports a route like this — let me walk you through the numbers."<span class="pt">Abre com a tese, não com dados soltos.</span></div>
-    <div class="script-line">"We're seeing consistent O&D demand on this corridor, and the incentive package is designed to de-risk the ramp-up period."<span class="pt">Conecta demanda real ao pacote de incentivo.</span></div>
-  </div>
-
-  <div class="script-block">
-    <div class="stitle">3. Lidando com objeções</div>
-    <div class="script-line">"That's a fair point — let me address it directly."<span class="pt">Nunca ignora a objeção, valida antes de responder.</span></div>
-    <div class="script-line">"If frequency is the concern, we're open to discussing a phased approach — seasonal first, year-round once load factors prove out."<span class="pt">Mostra flexibilidade sem perder a proposta central.</span></div>
-  </div>
-
-  <div class="script-block">
-    <div class="stitle">4. Fechando / próximos passos</div>
-    <div class="script-line">"What would you need from us to move this to a formal proposal?"<span class="pt">Pergunta que transfere a próxima ação de forma natural.</span></div>
-    <div class="script-line">"I'll follow up this week with the route feasibility summary — who's the best person to loop in on your side?"<span class="pt">Fecha com ação concreta e prazo.</span></div>
-  </div>
-
-  <div class="script-block">
-    <div class="stitle">5. Small talk de corredor</div>
-    <div class="script-line">"How's the show treating you so far?"<span class="pt">Abertura padrão, funciona sempre.</span></div>
-    <div class="script-line">"What's the one route everyone's talking about this year?"<span class="pt">Pergunta que gera conversa de conteúdo, não só cortesia.</span></div>
-  </div>
-</div>
-
-<!-- TRACKER -->
-<div class="view" id="view-tracker">
-  <h2 class="section-title">Tracker diário</h2>
-  <p class="section-sub">Registro rápido — leva 30 segundos.</p>
-
-  <div class="stat-row">
-    <div class="stat-box"><div class="snum" id="statTotal">0</div><div class="slbl">Sessões</div></div>
-    <div class="stat-box"><div class="snum" id="statMin">0</div><div class="slbl">Min. totais</div></div>
-    <div class="stat-box"><div class="snum" id="statAvg">—</div><div class="slbl">Confiança média</div></div>
-  </div>
-
-  <div class="tracker-form">
-    <div class="form-row">
-      <label>Foco da sessão</label>
-      <select id="fFocus">
-        <option>Speaking / conversação</option>
-        <option>Vocabulário técnico</option>
-        <option>Listening</option>
-        <option>Simulação de negociação</option>
-        <option>Small talk</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>Minutos praticados</label>
-      <input type="number" id="fMin" placeholder="ex: 20">
-    </div>
-    <div class="form-row">
-      <label>Confiança (1 = travei muito, 5 = fluiu bem)</label>
-      <div class="rating-row" id="ratingRow"></div>
-    </div>
-    <div class="form-row">
-      <label>Nota rápida (opcional)</label>
-      <textarea id="fNote" rows="2" placeholder="onde travou, o que funcionou..."></textarea>
-    </div>
-    <button class="submit-btn" onclick="saveLog()">Registrar sessão</button>
-  </div>
-
-  <div id="logList"></div>
-</div>
-
-<!-- POCKET -->
-<div class="view" id="view-pocket">
-  <h2 class="section-title">De bolso — Routes World 2026</h2>
-  <p class="section-sub">Versão condensada para consulta rápida no evento. Ctrl/Cmd+P imprime limpo.</p>
-
-  <div class="pocket-group">
-    <h3>Se travar</h3>
-    <div class="pocket-line">"Let me rephrase that."<span class="pt-label">reformula sem pedir desculpas</span></div>
-    <div class="pocket-line">"What I mean to say is..."<span class="pt-label">recupera o fio da meada</span></div>
-    <div class="pocket-line">"Give me one second to put that the right way."<span class="pt-label">ganha tempo com naturalidade</span></div>
-    <div class="pocket-line">"Sorry, could you say that again? The noise here is rough."<span class="pt-label">pede repetição sem constranger — funciona bem no salão da feira</span></div>
-  </div>
-
-  <div class="pocket-group">
-    <h3>Números e crescimento</h3>
-    <div class="pocket-line">"a X% increase year-over-year"<span class="pt-label">crescimento anual</span></div>
-    <div class="pocket-line">"we're projecting a X% load factor within the first season"<span class="pt-label">projeção de ocupação</span></div>
-    <div class="pocket-line">"breakeven within 18 to 24 months"<span class="pt-label">prazo de retorno</span></div>
-  </div>
-
-  <div class="pocket-group">
-    <h3>Small talk reativo — reciclável pra qualquer imprevisto/bastidor</h3>
-    <div class="pocket-line">"Yeah, definitely."<span class="pt-label">concorda rápido, sem travar</span></div>
-    <div class="pocket-line">"Absolutely, right?"<span class="pt-label">concorda + devolve a conversa</span></div>
-    <div class="pocket-line">"Must have been quite a headache for them."<span class="pt-label">comenta situação estressante, sem detalhe técnico</span></div>
-    <div class="pocket-line">"Must have been quite stressful."<span class="pt-label">variação da anterior</span></div>
-    <div class="pocket-line">"Quite a scramble, yeah."<span class="pt-label">ecoa a expressão do interlocutor — mostra que acompanhou</span></div>
-    <div class="pocket-line">"Glad it worked out in the end."<span class="pt-label">fecha em tom positivo</span></div>
-    <div class="pocket-line">"At least it all came together."<span class="pt-label">variação da anterior</span></div>
-    <div class="pocket-line">"Anyway..."<span class="pt-label">ponte natural de volta ao assunto de trabalho</span></div>
-  </div>
-
-  <div class="pocket-group">
-    <h3>Abrir conversa</h3>
-    <div class="pocket-line">"What brings you to Routes this year?"</div>
-    <div class="pocket-line">"Are you looking at South America at all right now?"</div>
-    <div class="pocket-line">"Mind if I grab five minutes before you head to your next meeting?"</div>
-  </div>
-
-  <div class="pocket-group">
-    <h3>Fechar conversa</h3>
-    <div class="pocket-line">"I don't want to take up more of your time — let's continue this over email."</div>
-    <div class="pocket-line">"Who else on your team should see this?"</div>
-  </div>
-
-  <p class="print-note">Dica: adiciona esta página aos favoritos do celular pra consulta offline no salão.</p>
-</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ===== COUNTDOWN =====
-const eventDate = new Date('2026-10-21T00:00:00');
-function renderCountdown(){
-  const now = new Date();
-  const diff = eventDate - now;
-  const days = Math.max(0, Math.floor(diff / (1000*60*60*24)));
-  const weeks = Math.floor(days/7);
-  document.getElementById('countdown').innerHTML = `
-    <div class="count-box"><div class="num">${days}</div><div class="lbl">dias p/ Frankfurt</div></div>
-    <div class="count-box"><div class="num">${weeks}</div><div class="lbl">semanas</div></div>
-  `;
-}
-renderCountdown();
+(function(){
+const fb=document.getElementById('fallback');
+function fail(){fb.style.display='grid';}
+if(!window.THREE){fail();return;}
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),antialias:true,powerPreference:'high-performance'});}catch(e){fail();return;}
 
-// ===== TABS =====
-document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('view-'+tab.dataset.view).classList.add('active');
-  });
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const small=Math.min(innerWidth,innerHeight)<700;
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const smooth=t=>t*t*(3-2*t);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const S=.09; // escala: unidades do diagrama 2D para metros
+const P2=(x,y)=>[(x-380)*S,(y-40)*S]; // [X, Z]
+
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,small?1.5:2));
+renderer.setClearColor(0x0F0D0D,1);
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0F0D0D,.0034);
+const camera=new THREE.PerspectiveCamera(45,1,.1,800);
+
+/* ---------- texturas ---------- */
+function dotTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.35,'rgba(255,255,255,.85)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);
+  const t=new THREE.CanvasTexture(c);return t;}
+const DOT=dotTex();
+function nameTex(code,name,bg,fg,border){const c=document.createElement('canvas');c.width=640;c.height=96;const g=c.getContext('2d');
+  g.font='600 34px "IBM Plex Mono", Menlo, monospace';const w1=g.measureText(code).width;g.font='600 30px "IBM Plex Sans", Arial, sans-serif';const w2=g.measureText(name).width;
+  const w=Math.min(628,w1+w2+64),x=(640-w)/2,r=26;g.beginPath();g.moveTo(x+r,14);g.arcTo(x+w,14,x+w,82,r);g.arcTo(x+w,82,x,82,r);g.arcTo(x,82,x,14,r);g.arcTo(x,14,x+w,14,r);g.closePath();
+  g.fillStyle=bg;g.fill();if(border){g.lineWidth=4;g.strokeStyle=border;g.stroke();}
+  g.textBaseline='middle';g.fillStyle=fg;g.font='600 34px "IBM Plex Mono", Menlo, monospace';g.fillText(code,x+22,49);
+  g.globalAlpha=.88;g.font='600 30px "IBM Plex Sans", Arial, sans-serif';g.fillText(name,x+w1+42,49);
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;return t;}
+function labelTex(txt,bg,fg,border){const c=document.createElement('canvas');c.width=160;c.height=80;const g=c.getContext('2d');
+  const w=Math.max(64,txt.length*26+28);const x=(160-w)/2;g.beginPath();const r=20;g.moveTo(x+r,10);g.arcTo(x+w,10,x+w,70,r);g.arcTo(x+w,70,x,70,r);g.arcTo(x,70,x,10,r);g.arcTo(x,10,x+w,10,r);g.closePath();
+  if(bg){g.fillStyle=bg;g.fill();}if(border){g.lineWidth=4;g.strokeStyle=border;g.stroke();}
+  g.fillStyle=fg;g.font='600 38px "IBM Plex Mono", Menlo, monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,80,41);
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;return t;}
+
+/* ---------- nuvens de pontos ---------- */
+const scanOrigin=V(0,0,52.5);
+function makePoints(pos,col,size,opacity){
+  const n=pos.length/3,idx=[...Array(n).keys()];
+  const d=i=>{const dx=pos[i*3]-scanOrigin.x,dy=pos[i*3+1],dz=pos[i*3+2]-scanOrigin.z;return dx*dx+dy*dy*2+dz*dz;};
+  const dist=idx.map(d);idx.sort((a,b)=>dist[a]-dist[b]);
+  const P=new Float32Array(n*3),C=new Float32Array(n*3);
+  idx.forEach((s,i)=>{for(let k=0;k<3;k++){P[i*3+k]=pos[s*3+k];C[i*3+k]=col[s*3+k];}});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('color',new THREE.BufferAttribute(C,3));
+  const m=new THREE.PointsMaterial({size,map:DOT,vertexColors:true,transparent:true,opacity:opacity||1,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
+  const o=new THREE.Points(g,m);o.userData.n=n;scene.add(o);return o;}
+const dens=small?1.45:1;
+
+// estádio esquemático: anel oval em dois anéis de arquibancada e cobertura
+const sp=[],sc=[];
+function pushC(arr,r,g,b){arr.push(r,g,b);}
+const se=(th,a,b)=>{const c=Math.cos(th),s=Math.sin(th);return[Math.sign(c)*Math.pow(Math.abs(c),.5)*a,Math.sign(s)*Math.pow(Math.abs(s),.5)*b];};
+function tier(rows,a0,b0,y0,dy,stepR){for(let r=0;r<rows;r++){const a=a0+r*stepR,b=b0+r*stepR,y=y0+r*dy;
+  const per=3.7*(a+b),n=Math.floor(per/(.6*dens));
+  for(let i=0;i<n;i++){const th=(i+Math.random()*.5)/n*Math.PI*2;const q=se(th,a,b);
+    sp.push(q[0]+(Math.random()-.5)*.2,y+(Math.random()-.5)*.15,52.5+q[1]+(Math.random()-.5)*.2);
+    const w=Math.random();if(w<.12)pushC(sc,.8,.77,.74);else{const k=.35+Math.random()*.5;pushC(sc,.86*k,.08*k,.18*k);}}}}
+tier(20,42,64,.9,.62,1.1);
+tier(17,67,89,16.5,.78,1.05);
+// cobertura: faixas claras e esparsas
+for(let r=0;r<9;r++){const a=58+r*3.6,b=80+r*3.6,y=33-r*.55;const per=3.7*(a+b),n=Math.floor(per/(1.3*dens));
+  for(let i=0;i<n;i++){const th=(i+Math.random())/n*Math.PI*2;const q=se(th,a,b);sp.push(q[0],y,52.5+q[1]);const k=.22+Math.random()*.16;pushC(sc,k,k*.96,k*.93);}}
+const stadium=makePoints(sp,sc,small?.8:.62);
+
+// gramado
+const gp=[],gc=[];const st=.7*dens;
+for(let x=-31.5;x<=31.5;x+=st)for(let z=0;z<=105;z+=st){gp.push(x+(Math.random()-.5)*.25,0,z+(Math.random()-.5)*.25);
+  const band=Math.floor(z/5.25)%2?1.35:1;const k=(.07+Math.random()*.035)*band;pushC(gc,k,k*1.02,k*.95);}
+const grass=makePoints(gp,gc,small?.34:.26);
+
+// linhas
+const lp=[],lc=[];
+function seg(x1,z1,x2,z2,y){const L=Math.hypot(x2-x1,z2-z1),n=Math.max(2,Math.floor(L/.16));for(let i=0;i<=n;i++){const t=i/n;lp.push(lerp(x1,x2,t),y||0.02,lerp(z1,z2,t));pushC(lc,.78,.74,.7);}}
+function arc(cx,cz,r,a0,a1){const n=Math.floor(Math.abs(a1-a0)*r/.16);for(let i=0;i<=n;i++){const a=lerp(a0,a1,i/n);lp.push(cx+Math.cos(a)*r,.02,cz+Math.sin(a)*r);pushC(lc,.78,.74,.7);}}
+function rect(x1,z1,x2,z2){seg(x1,z1,x2,z1);seg(x2,z1,x2,z2);seg(x2,z2,x1,z2);seg(x1,z2,x1,z1);}
+rect(-31.5,0,31.5,105);seg(-31.5,52.5,31.5,52.5);arc(0,52.5,9.15,0,Math.PI*2);
+[[0,1],[105,-1]].forEach(([z0,s])=>{rect(-21.5,z0,21.5,z0+s*17.64);rect(-9.81,z0,9.81,z0+s*5.85);
+  const sz=z0+s*11.7;arc(0,sz,.18,0,Math.PI*2);const ang=Math.acos(5.94/9.7);
+  if(s>0)arc(0,sz,9.7,ang,Math.PI-ang);else arc(0,sz,9.7,Math.PI+ang,2*Math.PI-ang);
+  // trave
+  seg(-3.96,z0,-3.96,z0,0);for(let y=0;y<=2.44;y+=.08){lp.push(-3.96,y,z0);pushC(lc,.95,.92,.88);lp.push(3.96,y,z0);pushC(lc,.95,.92,.88);}
+  for(let x=-3.96;x<=3.96;x+=.08){lp.push(x,2.44,z0);pushC(lc,.95,.92,.88);}
+  for(let x=-3.96;x<=3.96;x+=.35)for(let y=0;y<=2.44;y+=.35){lp.push(x,y,z0-s*1.8+(2.44-y)*s*.25);pushC(lc,.25,.24,.23);}
 });
+arc(-31.5,0,1,0,Math.PI/2);arc(31.5,0,1,Math.PI/2,Math.PI);arc(-31.5,105,1,-Math.PI/2,0);arc(31.5,105,1,Math.PI,1.5*Math.PI);
+lp.push(0,.02,52.5);pushC(lc,1,1,1);
+const lines=makePoints(lp,lc,small?.3:.22);
 
-// ===== VOCAB DATA =====
-const vocabData = {
-  "Route Development": [
-    {term:"Catchment area", def:"Área de abrangência — a região geográfica de onde o aeroporto atrai passageiros.", ex:"Ex: \"The catchment area extends well beyond metro Porto Alegre.\""},
-    {term:"Load factor", def:"Fator de ocupação — percentual de assentos vendidos em relação à capacidade total.", ex:"Ex: \"We need a load factor above 75% to sustain year-round frequency.\""},
-    {term:"O&D traffic", def:"Tráfego Origem-Destino — passageiros cujo destino final é aquele par de cidades, não conexão.", ex:"Ex: \"Strong O&D traffic makes this route less dependent on connecting flows.\""},
-    {term:"Frequency", def:"Frequência — número de voos operados por semana numa rota.", ex:"Ex: \"We're proposing three weekly frequencies to start.\""},
-    {term:"Seasonality", def:"Sazonalidade — variação de demanda ao longo do ano.", ex:"Ex: \"Seasonality is a real factor here — summer demand is nearly double.\""},
-    {term:"Hub-and-spoke", def:"Modelo de rede em que voos passam por um hub central antes de seguir a outros destinos.", ex:"Ex: \"Their network still runs mostly hub-and-spoke through Madrid.\""},
-    {term:"Point-to-point", def:"Voo direto entre dois destinos, sem passar por hub.", ex:"Ex: \"Low-cost carriers tend to favor point-to-point networks.\""},
-    {term:"Traffic rights", def:"Direitos de tráfego — autorizações bilaterais que permitem operar entre dois países.", ex:"Ex: \"Traffic rights between Brazil and Saudi Arabia were only recently expanded.\""},
-    {term:"Slot", def:"Horário de pouso/decolagem alocado a uma companhia num aeroporto.", ex:"Ex: \"Slot availability at the destination airport is part of the feasibility study.\""},
-    {term:"Codeshare", def:"Acordo em que duas companhias vendem passagens no mesmo voo sob códigos diferentes.", ex:"Ex: \"A codeshare agreement could help build the route before going year-round.\""},
-    {term:"Wide-body / narrow-body", def:"Aeronave de fuselagem larga (dois corredores) vs. estreita (um corredor).", ex:"Ex: \"A narrow-body makes more sense for the initial ramp-up.\""},
-    {term:"Block hours", def:"Tempo total de operação da aeronave, do pushback ao pouso final.", ex:"Ex: \"Route economics are usually measured per block hour.\""},
-    {term:"MIDT data", def:"Dados de reservas globais usados para estimar demanda de uma rota (Marketing Information Data Tapes).", ex:"Ex: \"MIDT data shows consistent booking demand on this city pair.\""},
-    {term:"Connectivity", def:"Conectividade — qualidade e quantidade de conexões que um hub oferece.", ex:"Ex: \"This route significantly improves our connectivity to Southern Europe.\""},
-    {term:"Network carrier", def:"Companhia aérea que opera em modelo de rede com hub central, geralmente com conexões amplas.", ex:"Ex: \"As a network carrier, they'll evaluate this against their entire hub strategy.\""}
-  ],
-  "Negociação & Incentivos": [
-    {term:"Landing fee waiver", def:"Isenção de taxa de pouso — incentivo comum em programas de atração de rotas.", ex:"Ex: \"The incentive includes a landing fee waiver for the first 24 months.\""},
-    {term:"Marketing support", def:"Apoio de marketing — recurso oferecido para promover o lançamento da rota.", ex:"Ex: \"We can offer marketing support to help build awareness at launch.\""},
-    {term:"Ramp-up period", def:"Período de maturação — fase inicial em que a rota ainda está construindo demanda.", ex:"Ex: \"The ramp-up period is usually the riskiest phase for the carrier.\""},
-    {term:"Route risk-sharing", def:"Compartilhamento de risco da rota entre aeroporto e companhia aérea.", ex:"Ex: \"Route risk-sharing mechanisms make the proposal more attractive.\""},
-    {term:"Breakeven", def:"Ponto de equilíbrio — quando receita cobre os custos operacionais da rota.", ex:"Ex: \"We're modeling breakeven within 18 to 24 months.\""},
-    {term:"MOU", def:"Memorando de Entendimento — acordo preliminar não vinculante entre as partes.", ex:"Ex: \"Let's start with an MOU before drafting the formal agreement.\""},
-    {term:"Letter of intent", def:"Carta de intenção — sinaliza interesse sério antes do contrato formal.", ex:"Ex: \"A letter of intent would help us move this forward internally.\""},
-    {term:"Exclusivity clause", def:"Cláusula de exclusividade — impede concorrência direta na rota por um período.", ex:"Ex: \"We're not proposing an exclusivity clause at this stage.\""},
-    {term:"Route performance review", def:"Revisão periódica de desempenho da rota após o lançamento.", ex:"Ex: \"There's a route performance review built in at the 12-month mark.\""},
-    {term:"Commitment", def:"Comprometimento — compromisso formal de operação por um período mínimo.", ex:"Ex: \"What kind of commitment would you need from the airline's side?\""}
-  ],
-  "Small talk & Networking": [
-    {term:"\"How's the show treating you?\"", def:"Como está sendo a feira pra você — abertura casual e universal.", ex:""},
-    {term:"\"What brings you to Routes this year?\"", def:"O que te trouxe à Routes esse ano — pergunta de abertura padrão do setor.", ex:""},
-    {term:"\"Let's grab a coffee and continue this.\"", def:"Convite natural pra continuar a conversa em ambiente menos corrido.", ex:""},
-    {term:"\"Who else should I be talking to about this?\"", def:"Pergunta que expande a rede sem soar insistente.", ex:""},
-    {term:"\"I'll follow up with a proposal.\"", def:"Fecha a conversa com uma ação concreta e prazo implícito.", ex:""}
-  ]
-};
-let currentCat = "Route Development";
-let currentIdx = 0;
-let flipped = false;
+// anel de varredura (efeito de leitura na abertura)
+const scanRing=new THREE.Mesh(new THREE.RingGeometry(.98,1,128),new THREE.MeshBasicMaterial({color:0xEF3A50,transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));
+scanRing.rotation.x=-Math.PI/2;scanRing.position.set(0,.05,52.5);scene.add(scanRing);
 
-function renderCats(){
-  const row = document.getElementById('catRow');
-  row.innerHTML = '';
-  Object.keys(vocabData).forEach(cat=>{
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn' + (cat===currentCat ? ' active':'');
-    btn.textContent = cat;
-    btn.onclick = ()=>{ currentCat = cat; currentIdx = 0; flipped=false; renderCats(); renderCard(); };
-    row.appendChild(btn);
+/* ---------- rotinas ---------- */
+const PLAYS=[
+ {key:'e01',ref:'Arsenal 5×0 Crystal Palace (jan/2024) e Arsenal x Tottenham (abr/2024) <span class="tag v">Training Ground Guru</span>',dado:'Escanteio fechado: 0,14 xG por chute no 1º contato, contra 0,08 do aberto <span class="tag v">Opta 2022-23</span>',dfn:'Mista: 3 em zona (com o poste), 4 individuais, 1 na curta, 1 no rebote, 1 para o contra-ataque. Inter: 5 na área, 1 na curta, sobra e 2 na proteção.',code:'E-01',name:'Cortina no goleiro',tag:'Escanteio · direita · fechado',sub:'Cobrança fechada de canhoto pela direita.',
+  frames:[
+   {t:'Posição inicial',d:'Zagueiros-alvo começam longe do gol, <b>Z1</b> atrás da linha. <b>BL</b> e <b>IS</b> perto da pequena área. Dois na proteção e um na sobra desde o início.'},
+   {t:'Movimentos',d:'<b>BL</b> se posiciona parado na frente do goleiro. <b>IS</b> corre ao 1º pau e leva seu marcador. <b>Z1</b> ataca a zona do goleiro vindo de trás; <b>Z2</b> vai à marca do pênalti.'},
+   {t:'Cobrança',d:'Bola fechada e rápida na zona do goleiro. O goleiro não sai porque <b>BL</b> ocupa o caminho; <b>Z1</b> chega livre.'},
+   {t:'Proteção',d:'<b>S</b> segura a segunda bola na meia-lua; os dois <b>P</b> fecham o contra-ataque. Registrar o desfecho: posse mantida, recuperação sem transição ou transição perigosa.'}],
+  items:[
+   {id:'C',k:'att',p:[[718,52]]},{id:'GR',k:'gk',p:[[372,58],[372,58],[378,62]]},
+   {id:'BL',k:'att',p:[[440,150],[404,88]]},{id:'IS',k:'att',p:[[476,156],[456,86]],decoy:1},
+   {id:'Z1',k:'att',p:[[290,182],[352,104]]},{id:'Z2',k:'att',p:[[440,210],[398,162]]},
+   {id:'Z3',k:'att',p:[[300,214],[300,150],[318,112]]},{id:'A',k:'att',p:[[690,122]]},
+   {id:'S',k:'pro',p:[[380,262]]},{id:'P',k:'pro',p:[[250,316],[250,316],[250,316],[336,396]]},{id:'P2',k:'pro',p:[[510,316],[510,316],[510,316],[426,402]],lab:'P'},{id:'G',k:'att',p:[[380,1150]]},
+   {id:'pt',k:'def',lab:'PT',p:[[430,50]]},
+   {id:'z1',k:'def',lab:'ZN',p:[[322,88],[322,88],[336,94],[330,132]]},
+   {id:'z2',k:'def',lab:'ZN',p:[[376,114],[374,112],[364,106],[372,140]]},
+   {id:'i1',k:'def',lab:'IND',p:[[306,160],[328,136],[344,116],[350,150]]},
+   {id:'i2',k:'def',lab:'IND',p:[[468,132],[446,104]]},
+   {id:'i3',k:'def',lab:'IND',p:[[426,192],[408,182],[402,170]]},
+   {id:'i4',k:'def',lab:'IND',p:[[318,200],[310,156],[322,126]]},
+   {id:'cr',k:'def',lab:'CR',p:[[660,100]]},
+   {id:'rb',k:'def',lab:'RB',p:[[424,232],[424,232],[424,232],[404,250]]},{id:'ca',k:'def',lab:'CA',p:[[392,470],[392,470],[392,470],[376,420]]}],
+  blocks:[[383,78,393,68,1]],
+  balls:[{p0:[710,56],c:[560,170],p1:[362,98],h0:.11,h1:2.5,apex:6.5,at:2}],
+  zone:[214,236,332,104],
+  FP:[[.05,0],[.28,1],[.37,1],[.62,2],[.78,2],[.97,3]],
+  K:[[0,[0,33,31],[0,0,9]],[.15,[0,31,27],[0,0,9]],[.28,[-13,5.6,27],[3,1,6]],[.37,[-13,5.6,27],[3,1,6]],[.5,[34.5,4.2,-3.6],[6,1.4,8]],[.65,[25,6.5,15],[-1,1.6,5]],[.78,[18,9,24],[0,1,8]],[.97,[0,27,54],[0,0,19]]],
+  CO:[{t:'Adversário · misto · 3 zona + 4 individuais',a:'z2',f:[-1,0.55]},{t:'CA · fica para o contra-ataque · os 2 P cuidam',a:'ca',f:[2.55,3.5]},
+   {t:'BL · perto da pequena área',a:'BL',f:[-1,.55]},{t:'Z1 · começa longe do gol',a:'Z1',f:[-1,.55]},{t:'2 P + S · proteção desde o início',a:'S',f:[-1,.55],cls:'pro'},
+   {t:'Bloqueio parado · sem braços',a:'blk0',f:[.75,1.45]},{t:'Isca · arrasta ao 1º pau',a:'IS',f:[.75,1.45]},{t:'Z1 · ataca a zona do goleiro',a:'Z1',f:[.75,1.45]},
+   {t:'Fechada · canhoto pela direita',a:'ball',f:[1.08,1.85],cls:'ball'},{t:'Fechado · 0,14 xG por chute · Opta',a:'end0',f:[1.9,2.55],cls:'ball'},
+   {t:'Estrutura de proteção · 2 + 1',a:'zone',f:[2.6,3.5],cls:'pro'},{t:'Registrar desfecho 1 · 2 · 3',a:'S',f:[2.75,3.5]}]},
+
+ {key:'e02',ref:'Mirassol 3×1 Inter (out/2025), dois gols de escanteio <span class="tag v">Trivela</span> · desvio no 1º pau do Arsenal em 2026-27 <span class="tag v">Opta</span>',dado:'Com a arbitragem punindo bloqueio, o Arsenal ficou 7 rodadas sem gol de escanteio em 2026-27 e passou a desviar no 1º pau <span class="tag v">Opta Analyst</span>',dfn:'Individual: 5 marcadores, 1 no poste, 1 à frente do goleiro, 1 na curta, 1 no rebote, 1 para o contra-ataque. Inter: 6 na área, 1 na curta, sobra e 2 na proteção.',code:'E-02',name:'Desvio no 1º pau',tag:'Escanteio · esquerda · 1º pau',sub:'Bola forte em meia altura; plano B quando a arbitragem pune bloqueio no goleiro.',
+  frames:[
+   {t:'Posição inicial',d:'<b>Z1</b> e <b>BL</b> lado a lado no limite da área; <b>Z2</b> e <b>Z3</b> mais longe, prontos para chegar.'},
+   {t:'Movimentos',d:'<b>BL</b> trava o marcador de <b>Z1</b>, que ataca o 1º pau. <b>Z2</b> corre ao 2º pau e <b>Z3</b> ao centro da pequena área.'},
+   {t:'Cobrança e desvio',d:'Bola forte, em meia altura, no 1º pau. <b>Z1</b> desvia para a segunda zona, onde <b>Z2</b> e <b>Z3</b> chegam.'},
+   {t:'Proteção',d:'Mesma estrutura: sobra na meia-lua e dois atrás. O desvio gera bolas soltas, então a sobra trabalha mais aqui.'}],
+  items:[
+   {id:'C',k:'att',p:[[42,52]]},{id:'GR',k:'gk',p:[[392,58]]},
+   {id:'Z1',k:'att',p:[[320,160],[326,104]]},{id:'BL',k:'att',p:[[278,150],[288,116]]},
+   {id:'Z2',k:'att',p:[[462,186],[430,106]]},{id:'Z3',k:'att',p:[[406,220],[392,124]]},
+   {id:'IS',k:'att',p:[[500,160],[476,96]],decoy:1},{id:'A',k:'att',p:[[70,112]]},
+   {id:'S',k:'pro',p:[[380,262]]},{id:'P',k:'pro',p:[[250,316],[250,316],[250,316],[336,396]]},{id:'P2',k:'pro',p:[[510,316],[510,316],[510,316],[426,402]],lab:'P'},{id:'G',k:'att',p:[[380,1150]]},
+   {id:'pt',k:'def',lab:'PT',p:[[336,50]]},
+   {id:'zg',k:'def',lab:'ZN',p:[[360,86],[360,86],[364,92]]},
+   {id:'i1',k:'def',lab:'IND',p:[[302,140],[306,138],[310,128],[318,140]]},
+   {id:'i2',k:'def',lab:'IND',p:[[448,166],[438,130],[428,118]]},
+   {id:'i3',k:'def',lab:'IND',p:[[420,214],[402,146],[396,134]]},
+   {id:'i4',k:'def',lab:'IND',p:[[268,138],[280,126]]},
+   {id:'i5',k:'def',lab:'IND',p:[[512,152],[490,104]]},
+   {id:'cr',k:'def',lab:'CR',p:[[100,98]]},
+   {id:'rb',k:'def',lab:'RB',p:[[340,232],[340,232],[340,232],[360,250]]},{id:'ca',k:'def',lab:'CA',p:[[392,470],[392,470],[392,470],[376,420]]}],
+  blocks:[[291,131,302,122,1]],
+  balls:[{p0:[50,56],c:[200,112],p1:[314,102],h0:.11,h1:2.3,apex:2.4,at:2},{p0:[330,100],p1:[412,106],h0:2.3,h1:1.9,apex:.6,at:2}],
+  zone:[214,236,332,104],
+  FP:[[.06,0],[.27,1],[.36,1],[.66,2],[.78,2],[.97,3]],
+  K:[[0,[0,30,42],[0,0,14]],[.13,[-6,30,27],[-2,0,9]],[.27,[-17,5,-6],[-1,1,10]],[.36,[-17,5,-6],[-1,1,10]],[.52,[-19,5.6,-7],[0,1.4,9]],[.66,[-12,8,-9],[1,1.2,10]],[.78,[-6,12,-9],[0,1,10]],[.97,[0,27,54],[0,0,19]]],
+  CO:[{t:'Adversário · individual · 5 marcadores',a:'i3',f:[-1,0.55]},{t:'CA · fica para o contra-ataque',a:'ca',f:[2.55,3.5]},
+   {t:'Z1 e BL · lado a lado',a:'Z1',f:[-1,.55]},{t:'Z2 e Z3 · longe, prontos para chegar',a:'Z2',f:[-1,.55]},{t:'2 P + S',a:'S',f:[-1,.55],cls:'pro'},
+   {t:'BL trava o marcador de Z1',a:'blk0',f:[.75,1.45]},{t:'Z1 · ataca o 1º pau',a:'Z1',f:[.75,1.45]},{t:'Z2 · 2º pau · Z3 · centro',a:'Z3',f:[.75,1.45]},
+   {t:'Forte · meia altura · 1º pau',a:'ball',f:[1.05,1.5],cls:'ball'},{t:'Desvio para a segunda zona',a:'ball',f:[1.5,2.0],cls:'ball'},
+   {t:'Dois toques certos · taxa menor',a:'end1',f:[2.0,2.6],cls:'ball'},
+   {t:'Bola solta · a sobra trabalha mais',a:'S',f:[2.6,3.5],cls:'pro'},{t:'Estrutura de proteção',a:'zone',f:[2.7,3.5],cls:'pro'}]},
+
+ {key:'f01',ref:'Arsenal, análise da Footure (mai/2024) · Jover sobre VAR e impedimento à L\'Équipe <span class="tag v">Footure · L\'Équipe</span>',dado:'A distância média das faltas no terço final caiu de 29,5 para 27,6 m e o cruzamento ganhou espaço sobre o chute <span class="tag v">Opta Analyst</span>',dfn:'Linha de 5, barreira de 2, 1 individual na entrada da área, 1 no rebote, 1 para o contra-ataque. Inter: 4 além da linha, 2 na bola, 1 chutador, sobra e 2 na proteção.',code:'F-01',name:'Linha que sai do impedimento',tag:'Falta · diagonal · direita',sub:'Bola entre a linha defensiva e o goleiro, de 20 a 30 m.',
+  frames:[
+   {t:'Posição inicial',d:'Os quatro atacantes começam <b>além da linha defensiva</b>, em posição de impedimento, para empurrar a defesa para trás.'},
+   {t:'Recuo',d:'Antes do toque, todos recuam para ficar atrás da linha. O tempo do recuo é o detalhe que decide: o VAR mede por centímetros.'},
+   {t:'Cobrança e ataque',d:'Bola fechada no espaço entre a linha e o goleiro. <b>Z1</b>, <b>Z2</b> e <b>Z3</b> atacam esse espaço; <b>IS</b> leva marcação ao 1º pau.'},
+   {t:'Proteção',d:'Com a falta mais longe do gol, a proteção fica mais exposta: sobra e dois atrás mais altos que no escanteio.'}],
+  items:[
+   {id:'C',k:'att',p:[[612,276]]},{id:'A',k:'att',p:[[630,294],[630,294],[604,252]]},{id:'GR',k:'gk',p:[[380,58],[380,58],[372,70]]},
+   {id:'Z1',k:'att',p:[[282,128],[298,182],[330,104]],back:1},{id:'Z2',k:'att',p:[[342,126],[358,184],[368,110]],back:1},
+   {id:'Z3',k:'att',p:[[402,128],[418,182],[408,120]],back:1},{id:'IS',k:'att',p:[[462,130],[478,182],[452,84]],back:1,decoy:1},
+   {id:'CH',k:'att',p:[[476,272],[476,272],[452,248]]},
+   {id:'S',k:'pro',p:[[420,304]]},{id:'P',k:'pro',p:[[262,342],[262,342],[262,342],[336,404]]},{id:'P2',k:'pro',p:[[524,350],[524,350],[524,350],[426,410]],lab:'P'},{id:'G',k:'att',p:[[380,1150]]},
+   {id:'d1',k:'def',lab:'LN',p:[[300,152],[300,152],[318,128]]},{id:'d2',k:'def',lab:'LN',p:[[360,152],[360,152],[366,132]]},
+   {id:'d3',k:'def',lab:'LN',p:[[420,152],[420,152],[420,138]]},{id:'d4',k:'def',lab:'LN',p:[[480,152],[480,152],[468,112]]},
+   {id:'d5',k:'def',lab:'LN',p:[[530,152],[530,152],[506,124]]},
+   {id:'b1',k:'def',lab:'BR',p:[[532,198]]},{id:'b2',k:'def',lab:'BR',p:[[548,212]]},
+   {id:'im',k:'def',lab:'IND',p:[[494,288],[494,288],[470,262]]},
+   {id:'rb',k:'def',lab:'RB',p:[[372,232],[372,232],[372,232],[380,250]]},{id:'ca',k:'def',lab:'CA',p:[[392,470],[392,470],[392,470],[376,420]]}],
+  blocks:[],
+  balls:[{p0:[602,268],c:[500,160],p1:[380,110],h0:.11,h1:1.9,apex:4.6,at:2}],
+  line:{y:152,x1:250,x2:540,until:1},
+  zone:[232,282,330,96],
+  FP:[[.2,0],[.4,1],[.5,1],[.7,2],[.8,2],[.97,3]],
+  K:[[0,[0,28,46],[0,0,15]],[.12,[10,28,34],[2,0,11]],[.24,[27,6.5,27],[-1,1,9]],[.42,[27,6.5,27],[-1,1,9]],[.53,[27,3.2,28],[2,1.4,8]],[.7,[15,6,19],[-1,1.4,8]],[.8,[12,10,26],[0,1,10]],[.97,[0,28,56],[0,0,20]]],
+  CO:[{t:'Barreira de 2 · a 9,15 m',a:'b1',f:[-1,1.4]},{t:'CA · fica para o contra-ataque',a:'ca',f:[2.55,3.5]},
+   {t:'Linha defensiva',a:'line',f:[-1,.5]},{t:'4 atacantes além da linha',a:'Z2',f:[-1,.5]},
+   {t:'Recuo termina antes do toque · VAR',a:'Z2',f:[.55,1.45]},{t:'Atrás da linha · em jogo',a:'IS',f:[.8,1.45]},
+   {t:'Fechada · entre a linha e o goleiro',a:'ball',f:[1.05,1.8],cls:'ball'},{t:'Chegar ao espaço antes do goleiro',a:'end0',f:[1.9,2.6],cls:'ball'},
+   {t:'Proteção mais alta que no escanteio',a:'zone',f:[2.6,3.5],cls:'pro'},{t:'S · segunda bola',a:'S',f:[2.75,3.5],cls:'pro'}]},
+
+ {key:'e03',ref:'Variação de surpresa; sem caso de referência único <span class="tag i">Inferência</span>',dado:'Escanteio curto: 2,8% de chute no 1º contato e 3,3% de gol na sequência <span class="tag v">Opta 2022-23</span>',dfn:'Zona compacta: 4 em zona e 1 no poste; 2 saem na curta; 1 individual, 1 no rebote, 1 para o contra-ataque. Inter: 3 prendendo a pequena área, 2 na curta, chutador, isca, sobra e 2 na proteção.',code:'E-03',name:'Curto e rasteiro',tag:'Escanteio · curto · direita',sub:'Variação de surpresa, para usar pouco.',
+  frames:[
+   {t:'Posição inicial',d:'Os três zagueiros ficam na pequena área e prendem a defesa ali. <b>A</b> perto do cobrador; <b>CH</b> fora da área.'},
+   {t:'Cobrança curta',d:'<b>C</b> toca curto para <b>A</b>, que muda o ângulo antes que um defensor chegue.'},
+   {t:'Rasteiro e chute',d:'<b>A</b> cruza rasteiro para a entrada da área; <b>CH</b> chega em corrida e finaliza de primeira.'},
+   {t:'Proteção',d:'Com três zagueiros dentro da área, a proteção depende de quem ficou fora: sobra e dois atrás.'}],
+  items:[
+   {id:'C',k:'att',p:[[718,52]]},{id:'GR',k:'gk',p:[[394,58]]},
+   {id:'A',k:'att',p:[[688,118],[652,96]]},
+   {id:'Z1',k:'att',p:[[326,82]]},{id:'Z2',k:'att',p:[[372,94]]},{id:'Z3',k:'att',p:[[440,84]]},
+   {id:'CH',k:'att',p:[[444,282],[444,282],[412,236]]},{id:'IS',k:'att',p:[[520,176],[548,150]],decoy:1},
+   {id:'S',k:'pro',p:[[300,272]]},{id:'P',k:'pro',p:[[252,328],[252,328],[252,328],[336,404]]},{id:'P2',k:'pro',p:[[530,328],[530,328],[530,328],[426,410]],lab:'P'},{id:'G',k:'att',p:[[380,1150]]},
+   {id:'z1',k:'def',lab:'ZN',p:[[310,62]]},{id:'z2',k:'def',lab:'ZN',p:[[358,70]]},{id:'z3',k:'def',lab:'ZN',p:[[454,62]]},{id:'z4',k:'def',lab:'ZN',p:[[400,106]]},
+   {id:'pt',k:'def',lab:'PT',p:[[428,50]]},
+   {id:'c1',k:'def',lab:'CR',p:[[618,134],[618,134],[634,114]]},{id:'c2',k:'def',lab:'CR',p:[[664,74],[660,82],[650,94]]},
+   {id:'im',k:'def',lab:'IND',p:[[532,190],[558,164]]},
+   {id:'rb',k:'def',lab:'RB',p:[[380,246],[380,246],[398,238]]},{id:'ca',k:'def',lab:'CA',p:[[392,470],[392,470],[392,470],[376,420]]}],
+  blocks:[],
+  balls:[{p0:[710,56],p1:[664,88],h0:.11,h1:.11,apex:0,at:1},{p0:[640,104],p1:[418,226],h0:.11,h1:.11,apex:0,at:2}],
+  zone:[216,248,346,104],
+  FP:[[.14,0],[.4,1],[.48,1],[.68,2],[.8,2],[.97,3]],
+  K:[[0,[0,28,48],[0,0,16]],[.12,[8,30,28],[5,0,9]],[.28,[40,6,19],[17,.5,5]],[.4,[40,6,19],[17,.5,5]],[.52,[-6,3.2,33],[14,.6,6]],[.68,[-2,4,30],[6,.6,16]],[.8,[2,9,36],[4,.5,14]],[1,[0,58,96],[0,0,28]]],
+  CO:[{t:'Adversário · zona compacta',a:'z4',f:[-1,0.5]},{t:'2 saem na curta · abre a entrada da área',a:'c2',f:[0.6,1.6]},{t:'RB · chega atrasado ao chute',a:'rb',f:[1.9,2.6]},
+   {t:'3 zagueiros prendem a defesa',a:'Z2',f:[-1,.5]},{t:'CH · fora da área',a:'CH',f:[-1,.5]},
+   {t:'Curta · A muda o ângulo',a:'A',f:[.3,1.3]},
+   {t:'Rasteiro · entrada da área',a:'ball',f:[1.05,1.8],cls:'ball'},{t:'CH · finaliza de primeira',a:'CH',f:[1.85,2.6]},
+   {t:'Usar pouco · 3,3% de gol na sequência · Opta',a:'end1',f:[1.95,2.6],cls:'ball'},
+   {t:'Proteção depende de quem ficou fora',a:'zone',f:[2.6,3.5],cls:'pro'}]}
+];
+/* ---------- teste com elenco: funções ocupadas por jogadores, com números do Sofascore ---------- */
+const PL={
+ AP:{n:'Alan Patrick',sh:'ALAN PATRICK',ae:'24%',s:'Destro · 29% dos cruzamentos certos · 8 grandes chances'},
+ MA:{n:'Maripán',sh:'MARIPÁN',ae:'74%',s:'193 cm · aéreo 74% (2,1 ganhos/jogo) · 11 jogos'},
+ BG:{n:'Bruno Gomes',sh:'BRUNO GOMES',ae:'54%',s:'175 cm · aéreo 54% (1,0/jogo) · 61% no chão'},
+ JU:{n:'Juninho',sh:'JUNINHO',ae:'61%',s:'186 cm · aéreo 61% (1,2/jogo) · 14 jogos'},
+ VI:{n:'Vitinho',sh:'VITINHO',ae:'32%',s:'181 cm · aéreo 32% (1,4/jogo) · 2 gols de fora da área'},
+ AL:{n:'Alerrandro',sh:'ALERRANDRO',ae:'30%',s:'180 cm · aéreo 30% (1,1/jogo) · melhor como isca'},
+ TM:{n:'Thiago Maia',sh:'THIAGO MAIA',ae:'54%',s:'179 cm · aéreo 54% (0,4/jogo) · 2,4 bolas recuperadas/jogo'},
+ RV:{n:'Villagra',sh:'VILLAGRA',ae:'59%',s:'178 cm · aéreo 59% (0,8/jogo) · 4,3 bolas recuperadas/jogo'},
+ AB:{n:'Bernabei',sh:'BERNABEI',ae:'41%',s:'169 cm · aéreo 41% (0,6/jogo) · 4,2 bolas recuperadas/jogo'},
+ X:{n:'A definir',s:'10º jogador de linha: opção curta',open:1}};
+const BASE={C:'AP',Z1:'MA',Z2:'BG',Z3:'JU',BL:'VI',IS:'AL',S:'TM',P:'RV',P2:'AB',A:'X',CH:'VI'};
+function rosterFor(key){const k=key.split('-')[0];const r={};for(const f in BASE)r[f]=PL[BASE[f]];return r;}
+(function(){const M=x=>760-x;
+  function mirror(p){p.items.forEach(it=>it.p=it.p.map(q=>[M(q[0]),q[1]]));
+    p.blocks=p.blocks.map(b=>[M(b[0]),b[1],M(b[2]),b[3],b[4]]);
+    p.balls.forEach(b=>{b.p0=[M(b.p0[0]),b.p0[1]];b.p1=[M(b.p1[0]),b.p1[1]];if(b.c)b.c=[M(b.c[0]),b.c[1]];});
+    p.zone=[M(p.zone[0]+p.zone[2]),p.zone[1],p.zone[2],p.zone[3]];
+    if(p.line){const a=M(p.line.x2),b=M(p.line.x1);p.line.x1=a;p.line.x2=b;}
+    p.K=p.K.map(k=>[k[0],[-k[1][0],k[1][1],k[1][2]],[-k[2][0],k[2][1],k[2][2]]]);}
+  const e01=PLAYS[0],f01=PLAYS.find(p=>p.key==='f01');
+  mirror(e01);mirror(f01);
+  e01.tag='Escanteio · esquerda · fechado';e01.sub='Cobrança fechada de destro pela esquerda.';
+  f01.tag='Falta · diagonal · esquerda';f01.sub='Destro pela esquerda: bola fechada entre a linha e o goleiro.';
+  e01.CO=[{t:'Z1 · Maripán · 74% no alto',a:'Z1',f:[-1,.55]},{t:'Z2 · Bruno Gomes · 54% no alto',a:'Z2',f:[-1,.55]},{t:'Z3 · Juninho · 61% no alto',a:'Z3',f:[-1,.55]},{t:'BL · Vitinho',a:'BL',f:[-1,.55]},
+   {t:'Bloqueio parado · sem braços',a:'blk0',f:[.75,1.45]},{t:'Alerrandro arrasta ao 1º pau',a:'IS',f:[.75,1.45]},{t:'Maripán ataca a zona do goleiro',a:'Z1',f:[.75,1.45]},
+   {t:'Alan Patrick · destro · fechada',a:'ball',f:[1.08,1.85],cls:'ball'},{t:'Fechado · 0,14 xG por chute · Opta',a:'end0',f:[1.9,2.55],cls:'ball'},
+   {t:'Thiago Maia · segunda bola',a:'S',f:[2.6,3.5],cls:'pro'},{t:'Villagra e Bernabei · contra-ataque',a:'P',f:[2.6,3.5],cls:'pro'}];
+  PLAYS.slice(1).forEach(p=>{const R=rosterFor(p.key);p.CO=p.CO.filter(c=>c.f[0]>=0);
+    ['Z1','Z2','Z3'].forEach(r=>{if(p.items.some(i=>i.id===r))p.CO.unshift({t:r+' · '+R[r].n+' · '+R[r].ae+' no alto',a:r,f:[-1,.5]});});
+    if(p.items.some(i=>i.id==='CH'))p.CO.push({t:'CH · Vitinho · 2 gols de fora da área',a:'CH',f:[1.85,2.6]});});
+  PLAYS.forEach(p=>{p.dfn=(p.dfn||'')+' Escalação de teste: ver a lista à direita.';});
+})();
+const COL={att:0xEF3A50,def:0x8C837C,gk:0xC8BFB7,pro:0x86B3CC};
+
+/* ---------- primeira pessoa: uma versão de cada rotina pelos olhos de uma função ---------- */
+function addPov(srcKey,o){const i=PLAYS.findIndex(p=>p.key===srcKey);const src=PLAYS[i];const b=JSON.parse(JSON.stringify(src));
+  Object.assign(b,{key:srcKey+'-pov',code:src.code+' · '+o.pov,name:'Visão do '+o.pov,tag:'Primeira pessoa',sub:'A mesma '+src.code+', vista por '+o.who+'.',
+    K:[[0,[0,27,54],[0,0,19]],[1,[0,27,54],[0,0,19]]],dfn:'Mesma jogada e mesma defesa simulada da '+src.code+', vistas a 1,72 m de altura pelos olhos do '+o.pov+'.'},o);
+  PLAYS.splice(i+1,0,b);}
+addPov('e01',{pov:'Z1',name:'Visão de Maripán',who:'Maripán, o Z1',povBall:0,jump:1,
+  frames:[
+   {t:'Espero o sinal',d:'Começo longe do gol, atrás da linha da área, com meu marcador colado. Olho para o <b>C</b>: o braço erguido é o sinal de partida.'},
+   {t:'Ataco o espaço',d:'Parto em diagonal para a zona do goleiro. O <b>BL</b> já está parado na frente dele e meu marcador fica um passo atrás.'},
+   {t:'Ataco a bola',d:'Acompanho a bola fechada desde o pé do <b>C</b>. Chego em corrida, salto e cabeceio no primeiro contato.'},
+   {t:'Depois do lance',d:'Se a bola sobra, a <b>S</b> e os dois <b>P</b> já estão no lugar. Se a jogada morre, eu volto para a proteção.'}],
+  FP:[[.06,0],[.22,0],[.42,1],[.5,1],[.72,2],[.84,2],[.97,3]],
+  CO:[{t:'C · braço erguido = sinal de partida',a:'C',f:[-1,.45]},{t:'Meu marcador',a:'i1',f:[-1,.95]},
+   {t:'BL · parado na frente do goleiro',a:'BL',f:[.55,1.6]},{t:'Zona do goleiro · é aqui que eu chego',a:'end0',f:[.6,1.25],cls:'ball'},
+   {t:'Bola fechada · olho nela desde o pé',a:'ball',f:[1.1,1.85],cls:'ball'},{t:'Primeiro contato útil',a:'end0',f:[1.95,2.6],cls:'ball'},
+   {t:'S · segunda bola',a:'S',f:[2.6,3.5],cls:'pro'}]});
+addPov('e02',{pov:'Z1',name:'Visão de Maripán',who:'Maripán, que desvia no 1º pau',povBall:0,jump:1,
+  frames:[
+   {t:'Espero o sinal',d:'Começo lado a lado com o <b>BL</b>, no limite da área. Olho para o <b>C</b>, que bate pela esquerda.'},
+   {t:'Ataco o 1º pau',d:'O <b>BL</b> trava meu marcador e eu parto curto para o 1º pau, à frente de quem guarda o poste.'},
+   {t:'Desvio',d:'A bola vem forte, em meia altura. Não procuro o gol: só mudo a direção para a segunda zona, onde <b>Z2</b> e <b>Z3</b> chegam.'},
+   {t:'Depois do lance',d:'O desvio gera bola solta. A <b>S</b> está na meia-lua e eu fico atento ao rebote perto do poste.'}],
+  FP:[[.06,0],[.22,0],[.42,1],[.5,1],[.72,2],[.84,2],[.97,3]],
+  CO:[{t:'C · sinal de partida',a:'C',f:[-1,.45]},{t:'Meu marcador · o BL trava',a:'i1',f:[-1,1.2]},
+   {t:'PT · guarda o poste',a:'pt',f:[.5,1.4]},{t:'Forte · meia altura',a:'ball',f:[1.05,1.5],cls:'ball'},
+   {t:'Desvio · segunda zona',a:'end1',f:[1.55,2.4],cls:'ball'},{t:'Z2 e Z3 chegam',a:'Z3',f:[1.8,2.6]},
+   {t:'S · bola solta',a:'S',f:[2.6,3.5],cls:'pro'}]});
+addPov('f01',{pov:'Z2',name:'Visão de Bruno Gomes',who:'Bruno Gomes, o Z2',povBall:0,jump:1,
+  frames:[
+   {t:'Além da linha',d:'Começo além da linha defensiva, em impedimento, olhando o <b>C</b>. Estar ali empurra a defesa para trás.'},
+   {t:'Recuo',d:'Antes do toque, recuo para trás da linha. Só ataco quando estou em jogo: o VAR mede por centímetros.'},
+   {t:'Ataco o espaço',d:'A bola vem fechada entre a linha e o goleiro. Eu ataco esse espaço antes de o goleiro sair.'},
+   {t:'Depois do lance',d:'Com a falta mais longe do gol, a proteção fica mais exposta. Se a bola é rebatida, eu fecho por dentro.'}],
+  FP:[[.06,0],[.2,0],[.4,1],[.5,1],[.72,2],[.84,2],[.97,3]],
+  CO:[{t:'Linha defensiva · estou além dela',a:'line',f:[-1,.6]},{t:'C · sinal de partida',a:'C',f:[-1,.5]},
+   {t:'Recuo · terminar antes do toque',a:'line',f:[.65,1.4]},{t:'Fechada · entre a linha e o goleiro',a:'ball',f:[1.1,1.85],cls:'ball'},
+   {t:'Chegar antes do goleiro',a:'end0',f:[1.9,2.6],cls:'ball'},{t:'S · segunda bola',a:'S',f:[2.6,3.5],cls:'pro'}]});
+addPov('e03',{pov:'CH',name:'Visão de Vitinho',who:'Vitinho, o chutador',povBall:1,jump:0,
+  frames:[
+   {t:'Espero fora da área',d:'Começo fora da área. Os três zagueiros prendem a defesa na pequena área; eu olho para o escanteio.'},
+   {t:'Leio a curta',d:'O <b>C</b> toca curto para o <b>A</b>. Dois adversários saem na cobrança e a entrada da área abre.'},
+   {t:'Chego e finalizo',d:'O <b>A</b> cruza rasteiro. Chego em corrida e finalizo de primeira, sem dominar.'},
+   {t:'Depois do lance',d:'Se o chute é bloqueado, a sobra e os dois <b>P</b> já estão no lugar.'}],
+  FP:[[.06,0],[.2,0],[.42,1],[.5,1],[.72,2],[.84,2],[.97,3]],
+  CO:[{t:'Defesa presa na pequena área',a:'z4',f:[-1,.6]},{t:'A · muda o ângulo',a:'A',f:[.3,1.2]},
+   {t:'Entrada da área · aberta',a:'end1',f:[.8,1.4],cls:'ball'},{t:'Rasteiro · vem para mim',a:'ball',f:[1.1,1.85],cls:'ball'},
+   {t:'De primeira',a:'end1',f:[1.9,2.6],cls:'ball'},{t:'RB · chega atrasado',a:'rb',f:[1.9,2.6]}]});
+
+/* ---------- linha do tempo em telas ---------- */
+const OPEN=3.63,BLK=7;let acc=OPEN;
+PLAYS.forEach(p=>{p.len=p.pov?5.5:BLK;p.u0=acc;p.u1=acc+p.len;acc=p.u1;});
+const U=acc+2;document.querySelector('.p-roster').dataset.b=(acc-.15).toFixed(2);
+document.querySelector('.p-play').dataset.b=(acc-.15).toFixed(2);document.querySelector('.p-end').dataset.a=(acc+.25).toFixed(2);
+document.querySelector('.spacer').style.height=(U*100)+'vh';
+
+function bez(b,t){if(!b.c)return[lerp(b.q0[0],b.q1[0],t),lerp(b.q0[1],b.q1[1],t)];const u=1-t;return[u*u*b.q0[0]+2*u*t*b.qc[0]+t*t*b.q1[0],u*u*b.q0[1]+2*u*t*b.qc[1]+t*t*b.q1[1]];}
+function ballAt(b,t){const q=bez(b,t);return V(q[0],lerp(b.h0,b.h1,t)+Math.sin(Math.PI*t)*b.apex,q[1]);}
+function dotsMat(color,size,opacity){return new THREE.PointsMaterial({size,map:DOT,color,vertexColors:color===undefined,transparent:true,opacity:opacity===undefined?1:opacity,depthWrite:false,blending:THREE.AdditiveBlending});}
+
+function buildPlay(play){
+  const root=new THREE.Group();scene.add(root);play.root=root;
+  play.actors={};play.labels=[];
+  play.items.forEach(it=>{
+    const g=new THREE.Group(),c=COL[it.k];
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.42,.56,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.95,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.04;g.add(ring);
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(.42,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.16,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=.03;g.add(disc);
+    const beam=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,1.8,8),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:it.k==='def'?.45:.75,depthWrite:false}));beam.position.y=.9;g.add(beam);
+    const head=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:c,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));head.scale.set(.75,.75,1);head.position.y=1.85;g.add(head);
+    if(it.k!=='def'||it.lab){const lab=it.lab||it.id;const tex=it.k==='def'?labelTex(lab,'rgba(15,13,13,.8)','#B5ABA3','#5A504B'):it.k==='att'?labelTex(lab,'#D3122C','#ffffff'):it.k==='pro'?labelTex(lab,'rgba(15,13,13,.85)','#F3EFEA','#86B3CC'):labelTex(lab,'rgba(15,13,13,.85)','#C8BFB7','#C8BFB7');
+      const R=rosterFor(play.key)[it.id];const named=R&&!R.open&&it.k!=='def';const nm=named?R.sh+' · '+R.ae:'';const tx2=named?(it.k==='att'?nameTex(lab,nm,'#D3122C','#ffffff'):nameTex(lab,nm,'rgba(15,13,13,.88)','#F3EFEA','#86B3CC')):tex;
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx2,transparent:true,depthTest:false,depthWrite:false}));s.userData.named=named;if(it.k==='def'){s.scale.set(1.2,.6,1);s.position.y=2.5;}else if(s.userData.named){s.scale.set(4,.6,1);s.position.y=2.75;}else{s.scale.set(1.5,.75,1);s.position.y=2.75;}s.renderOrder=10;g.add(s);play.labels.push(s);}
+    root.add(g);play.actors[it.id]={g,it};
   });
+  if(play.pov)play.actors[play.pov].g.visible=false;
+  play.trails=[];
+  play.items.forEach(it=>{for(let k=1;k<it.p.length;k++){const a=P2(...it.p[k-1]),b=P2(...it.p[k]);const L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<.3)continue;
+    const back=k===1&&it.back,decoy=it.decoy&&k===it.p.length-1;
+    const step=back?.55:decoy?.42:.2,n=Math.max(1,Math.floor((L-1)/step));const pos=[],col=[];const c=it.k==='def'?[.45,.42,.4]:back?[.7,.5,.48]:[.96,.6,.58];
+    for(let i=0;i<=n;i++){const t=(.5+i*step)/L;if(t>1)break;pos.push(lerp(a[0],b[0],t),.06,lerp(a[1],b[1],t));col.push(...c);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    const o=new THREE.Points(g,dotsMat(undefined,.3));g.setDrawRange(0,0);root.add(o);play.trails.push({o,n:pos.length/3,k});}});
+  play.blks=play.blocks.map(bk=>{const[x1,z1]=P2(bk[0],bk[1]),[x2,z2]=P2(bk[2],bk[3]);
+    const m=new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(x2-x1,z2-z1)+.6,.12,.12),new THREE.MeshBasicMaterial({color:0xF3EFEA,transparent:true,opacity:0}));
+    m.position.set((x1+x2)/2,1.1,(z1+z2)/2);m.rotation.y=-Math.atan2(z2-z1,x2-x1);root.add(m);return{m,at:bk[4]};});
+  const groups={};play.balls.forEach(b=>{b.q0=P2(...b.p0);b.q1=P2(...b.p1);if(b.c)b.qc=P2(...b.c);(groups[b.at]=groups[b.at]||[]).push(b);});
+  Object.values(groups).forEach(g=>g.forEach((b,i)=>{b.i=i;b.n=g.length;}));
+  play.balls.forEach(b=>{const N=b.apex>0?140:70,pos=[];for(let i=0;i<=N;i++){const v=ballAt(b,i/N);pos.push(v.x,v.y,v.z);}
+    b.N=N+1;b.trail=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(pos,3)),dotsMat(0xF2C14E,.22));b.trail.geometry.setDrawRange(0,0);root.add(b.trail);});
+  play.ball=new THREE.Mesh(new THREE.SphereGeometry(.2,20,14),new THREE.MeshBasicMaterial({color:0xF2C14E}));root.add(play.ball);
+  play.glow=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:0xF2C14E,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending}));play.glow.scale.set(1.4,1.4,1);root.add(play.glow);
+  play.shadow=new THREE.Mesh(new THREE.CircleGeometry(.28,24),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.55,depthWrite:false}));play.shadow.rotation.x=-Math.PI/2;root.add(play.shadow);
+  play.pulse=new THREE.Mesh(new THREE.RingGeometry(.9,1,48),new THREE.MeshBasicMaterial({color:0xF2C14E,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));play.pulse.rotation.x=-Math.PI/2;root.add(play.pulse);
+  const [zx,zy,zw,zh]=play.zone,[zx1,zz1]=P2(zx,zy),[zx2,zz2]=P2(zx+zw,zy+zh);play.zc=V((zx1+zx2)/2,.1,(zz1+zz2)/2);
+  play.zfill=new THREE.Mesh(new THREE.PlaneGeometry(zx2-zx1,zz2-zz1),new THREE.MeshBasicMaterial({color:0x86B3CC,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));
+  play.zfill.rotation.x=-Math.PI/2;play.zfill.position.set(play.zc.x,.05,play.zc.z);root.add(play.zfill);
+  const zp=[],e=(x1,z1,x2,z2)=>{const L=Math.hypot(x2-x1,z2-z1),n=Math.floor(L/.35);for(let i=0;i<=n;i++)zp.push(lerp(x1,x2,i/n),.07,lerp(z1,z2,i/n));};
+  e(zx1,zz1,zx2,zz1);e(zx2,zz1,zx2,zz2);e(zx2,zz2,zx1,zz2);e(zx1,zz2,zx1,zz1);
+  play.zline=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(zp,3)),dotsMat(0x86B3CC,.3,0));root.add(play.zline);
+  if(play.line){const L=play.line,[a]=P2(L.x1,L.y),[b,z]=P2(L.x2,L.y),lp2=[];for(let x=a;x<=b;x+=.3)lp2.push(x,.06,z);
+    play.lineObj=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(lp2,3)),dotsMat(0xC8BFB7,.34,1));root.add(play.lineObj);play.lineP=V(a,.1,z);}
+  play.lastBall=play.balls[play.balls.length-1];
+  // rótulos
+  play.CO.forEach(c=>{const d=document.createElement('div');d.className='co'+(c.cls?' '+c.cls:'');d.innerHTML='<i class="stem"></i><i class="dot"></i><span class="lbl">'+c.t+'</span>';coBox.appendChild(d);c.el=d;});
+  root.visible=false;
 }
-function renderCard(){
-  const list = vocabData[currentCat];
-  const item = list[currentIdx];
-  document.getElementById('cardTerm').textContent = item.term;
-  document.getElementById('cardDef').textContent = item.def;
-  document.getElementById('cardEx').textContent = item.ex || '';
-  document.getElementById('cardCount').textContent = (currentIdx+1) + ' / ' + list.length;
-  document.getElementById('flipCard').classList.remove('flipped');
-  flipped = false;
-}
-function nextCard(){
-  const list = vocabData[currentCat];
-  currentIdx = (currentIdx+1) % list.length;
-  renderCard();
-}
-function prevCard(){
-  const list = vocabData[currentCat];
-  currentIdx = (currentIdx-1+list.length) % list.length;
-  renderCard();
-}
-document.getElementById('flipCard').addEventListener('click', function(){
-  flipped = !flipped;
-  this.classList.toggle('flipped', flipped);
-});
-renderCats();
-renderCard();
+function anchor(play,a){
+  if(a==='ball')return play.ball.position.clone();
+  if(a==='zone')return play.zc.clone();
+  if(a==='line')return play.lineP.clone();
+  if(a.startsWith('blk')){const m=play.blks[+a.slice(3)].m.position;return V(m.x,1.2,m.z);}
+  if(a.startsWith('end'))return ballAt(play.balls[+a.slice(3)],1);
+  const g=play.actors[a].g.position;return V(g.x,2.2,g.z);}
 
-// ===== TRACKER =====
-let selectedRating = 3;
-function renderRatingRow(){
-  const row = document.getElementById('ratingRow');
-  row.innerHTML = '';
-  for(let i=1;i<=5;i++){
-    const btn = document.createElement('button');
-    btn.className = 'rate-btn' + (i===selectedRating ? ' sel':'');
-    btn.textContent = i;
-    btn.type = 'button';
-    btn.onclick = ()=>{ selectedRating = i; renderRatingRow(); };
-    row.appendChild(btn);
-  }
-}
-renderRatingRow();
+const coBox=document.getElementById('callouts'),povEl=document.getElementById('pov'),povLbl=document.querySelector('#pov .brk');
+PLAYS.forEach(buildPlay);
 
-function getLogs(){
-  try{
-    const raw = localStorage.getItem('flightplan_logs');
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){ return []; }
+function posAt(it,f){const P=it.p,k=Math.min(Math.floor(f),P.length-1);if(k>=P.length-1)return P2(...P[P.length-1]);const t=ease(clamp(f-k));const a=P2(...P[k]),b=P2(...P[k+1]);return[lerp(a[0],b[0],t),lerp(a[1],b[1],t)];}
+function frameOf(play,q){const FP=play.FP;if(q<=FP[0][0])return 0;for(let i=0;i<FP.length-1;i++){const a=FP[i],b=FP[i+1];if(q<=b[0])return lerp(a[1],b[1],clamp((q-a[0])/(b[0]-a[0])));}return 3;}
+
+/* ---------- câmera ---------- */
+const K=[[0,[-95,92,150],[0,0,52]],[1.1,[72,72,128],[0,0,46]],[2.31,[0,50,64],[0,0,15]]].map(k=>({u:k[0],pos:V(...k[1]),look:V(...k[2])}));
+PLAYS.forEach(p=>p.K.forEach(k=>K.push({u:p.u0+k[0]*p.len,pos:V(...k[1]),look:V(...k[2])})));
+K.push({u:U,pos:V(0,60,98),look:V(0,0,30)});
+const camPos=V(0,0,0),camLook=V(0,0,0);
+function camAt(u){let i=0;while(i<K.length-2&&u>K[i+1].u)i++;const a=K[i],b=K[i+1];let t=clamp((u-a.u)/(b.u-a.u));t=reduce?(t<.5?0:1):smooth(t);
+  camPos.lerpVectors(a.pos,b.pos,t);camLook.lerpVectors(a.look,b.look,t);}
+
+/* ---------- painéis ---------- */
+const panels=[...document.querySelectorAll('.panel')].map(el=>({el,a:+el.dataset.a,b:+el.dataset.b}));
+const ppanel=document.querySelector('.p-play'),pbrk=document.getElementById('pbrk'),pname=document.getElementById('pname'),psub=document.getElementById('psub');
+const segs=[...document.querySelectorAll('#pseg i')],pstep=document.getElementById('pstep'),pcap=document.getElementById('pcap');
+const chEl=document.getElementById('ch'),bar=document.getElementById('bar');
+const CH=[[0,'00 · Abertura'],[1.1,'01 · Tese'],[2.31,'02 · Ponto de partida']];
+PLAYS.forEach((p,i)=>CH.push([p.u0-.15,'0'+(3+i)+' · '+p.code+' · '+p.name]));CH.push([U-2,'0'+(3+PLAYS.length)+' · Próximas partes']);
+let lastCh='',lastI=-1,lastPlay=-1;
+function panelsAt(u){panels.forEach(P=>{const fade=.28;const o=Math.min(P.a<=0?1:clamp((u-P.a)/fade),clamp((P.b-u)/fade));P.el.style.opacity=o.toFixed(3);P.el.classList.toggle('on',o>.5);
+  if(!reduce&&P.el.classList.contains('p-mid')){P.el.style.transform='translateY(calc(-50% + '+((1-o)*24).toFixed(1)+'px))';}});
+  let c=CH[0][1];CH.forEach(x=>{if(u>=x[0])c=x[1];});if(c!==lastCh){chEl.textContent='[ '+c+' ]';lastCh=c;}}
+// atalhos de rotina
+const jump=document.getElementById('jump');
+PLAYS.forEach(p=>{const a=document.createElement('a');a.href='#'+p.key;a.textContent=p.pov?p.pov+' · 1ª':p.code;a.addEventListener('click',e=>{e.preventDefault();const h=document.documentElement;const max=h.scrollHeight-innerHeight;window.scrollTo({top:(p.u0+.3)/U*max,behavior:reduce?'auto':'smooth'});});jump.appendChild(a);});
+
+/* ---------- cena por rotina ---------- */
+const tmp=new THREE.Vector3();
+function updatePlay(play,u,idx){
+  const q=(u-play.u0)/play.len;
+  const fadeIn=idx===0?clamp((u-(OPEN-.85))/.6):clamp((q+.02)/.06),fadeOut=clamp((1.02-q)/.06);
+  const vis=idx===PLAYS.length-1?fadeIn:Math.min(fadeIn,fadeOut);
+  play.root.visible=vis>.001;
+  const active=q>=-.05&&q<1.0;
+  if(!play.root.visible){play.CO.forEach(c=>c.el.style.opacity=0);return null;}
+  const f=frameOf(play,clamp(q,0,1));
+  Object.values(play.actors).forEach(({g,it})=>{const p=posAt(it,f);g.position.set(p[0],0,p[1]);g.scale.setScalar(.001+vis*.999);});
+  play.trails.forEach(t=>{const r=ease(clamp(f-(t.k-1)));t.o.geometry.setDrawRange(0,Math.floor(t.n*r*vis));});
+  play.blks.forEach(b=>b.m.material.opacity=clamp((f-(b.at-.3))/.3)*vis);
+  let bp=null;
+  play.balls.forEach(b=>{const seg=clamp(f-(b.at-1));const t=clamp(seg*b.n-b.i);b.trail.geometry.setDrawRange(0,Math.floor(b.N*t*(vis>.5?1:0)));if(t>0)bp=ballAt(b,t);});
+  if(!bp)bp=ballAt(play.balls[0],0);
+  play.ball.position.copy(bp);play.glow.position.copy(bp);play.shadow.position.set(bp.x,.03,bp.z);
+  play.ball.visible=play.glow.visible=play.shadow.visible=vis>.5;
+  play.shadow.material.opacity=.55*clamp(1-bp.y/9);
+  const lb=play.lastBall,lbEnd=ballAt(lb,1),pt=clamp((f-1.95)/.5);
+  play.pulse.position.set(lbEnd.x,.06,lbEnd.z);play.pulse.scale.setScalar(.3+pt*2.4);play.pulse.material.opacity=pt>0&&pt<1&&!play.pov?(1-pt)*.9:0;
+  const zo=clamp(f-2)*vis;play.zfill.material.opacity=.08*zo;play.zline.material.opacity=zo;
+  if(play.lineObj){play.lineObj.material.opacity=(f<=play.line.until?1:1-.75*clamp(f-play.line.until))*vis;}
+  // rótulos
+  const w=innerWidth,h=innerHeight,showCo=active&&vis>.9;
+  play.CO.forEach(c=>{let o=0;if(showCo){o=Math.min(clamp((f-c.f[0])/.15),clamp((c.f[1]-f)/.15));}
+    if(o<=.01){c.el.style.opacity=0;return;}
+    tmp.copy(anchor(play,c.a)).project(camera);if(tmp.z>1||tmp.z<-1){c.el.style.opacity=0;return;}
+    const x=(tmp.x+1)/2*w,y=(1-tmp.y)/2*h;c.el.classList.toggle('left',x>w*.56);c.el.style.opacity=o.toFixed(2);c.el.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)';});
+  return active?{f,q}:null;
 }
-function saveLog(){
-  const focus = document.getElementById('fFocus').value;
-  const min = parseInt(document.getElementById('fMin').value) || 0;
-  const note = document.getElementById('fNote').value;
-  const logs = getLogs();
-  logs.unshift({
-    date: new Date().toLocaleDateString('pt-BR'),
-    focus, min, rating: selectedRating, note
-  });
-  try{
-    localStorage.setItem('flightplan_logs', JSON.stringify(logs));
-  }catch(e){ console.error('storage failed', e); }
-  document.getElementById('fMin').value = '';
-  document.getElementById('fNote').value = '';
-  renderLogs();
+function playPanel(u){
+  let idx=-1;PLAYS.forEach((p,i)=>{if(u>=p.u0-.4&&u<p.u1-.15)idx=i;});
+  if(idx<0)return;
+  const play=PLAYS[idx];
+  if(idx!==lastPlay){lastPlay=idx;lastI=-1;pbrk.textContent=play.code+' · '+play.tag;pname.textContent=play.name;psub.textContent=play.sub;
+    {const R=rosterFor(play.key);const order=['C','Z1','Z2','Z3','BL','IS','CH','A','S','P','P2'].filter(k=>play.items.some(i=>i.id===k));
+     document.getElementById('rtitle').textContent='Escalação · '+play.code;
+     document.getElementById('roster').innerHTML=order.map(k=>{const r=R[k];const v=parseInt(r.ae||'0');return '<li><span class="ch2'+(k[0]==='S'||k[0]==='P'?' pro':'')+'">'+(k==='P2'?'P':k)+'</span><div><b'+(r.open?' class="open"':'')+'>'+r.n+'</b><span class="d">'+r.s+'</span></div><span class="ae'+(v>=60?' hi':'')+'">'+(r.ae||'—')+'</span></li>';}).join('');}document.getElementById('pref').innerHTML=play.ref;document.getElementById('pdado').innerHTML=play.dado;document.getElementById('pdfn').innerHTML=play.dfn+' <span class="tag i">Hipótese</span>';ppanel.setAttribute('aria-label','Rotina '+play.code);}
+  const q=clamp((u-play.u0)/play.len),f=frameOf(play,q);
+  segs.forEach((s,i)=>s.style.transform='scaleX('+(i===0?clamp(q/play.FP[0][0]):clamp(f-(i-1))).toFixed(3)+')');
+  const i=Math.max(0,Math.min(3,Math.ceil(f-.05)));if(i!==lastI){lastI=i;pstep.innerHTML='0'+(i+1)+' <span>/ 04</span> · '+play.frames[i].t;pcap.innerHTML=play.frames[i].d;}
+  // pequena saída entre rotinas
+  const q2=(u-play.u0)/play.len;const dip=Math.min(clamp((q2+.06)/.05),clamp((.985-q2)/.03));
+  ppanel.style.opacity=(Math.min(+ppanel.style.opacity||0,dip)).toFixed(3);
 }
-function renderLogs(){
-  const logs = getLogs();
-  const list = document.getElementById('logList');
-  if(logs.length===0){
-    list.innerHTML = '<div class="empty-state">Nenhuma sessão registrada ainda. Bora começar hoje.</div>';
-  } else {
-    list.innerHTML = logs.map(l => `
-      <div class="log-entry">
-        <div class="ldate">${l.date} · ${l.min}min · confiança ${l.rating}/5</div>
-        <div class="lfocus">${l.focus}</div>
-        ${l.note ? `<div class="lnote">${l.note}</div>` : ''}
-      </div>
-    `).join('');
-  }
-  document.getElementById('statTotal').textContent = logs.length;
-  document.getElementById('statMin').textContent = logs.reduce((a,b)=>a+b.min,0);
-  document.getElementById('statAvg').textContent = logs.length ? (logs.reduce((a,b)=>a+b.rating,0)/logs.length).toFixed(1) : '—';
+
+/* ---------- laço ---------- */
+let baseFov=45,povW=0,povName='';
+let target=0,cur=0,t0=performance.now(),last=t0;
+function readScroll(){const h=document.documentElement;const max=h.scrollHeight-innerHeight;target=max>0?clamp(scrollY/max):0;}
+addEventListener('scroll',readScroll,{passive:true});
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;baseFov=w<h?64:45;camera.fov=baseFov;
+  if(w<h)camera.setViewOffset(w,h,0,h*.17,w,h);else camera.setViewOffset(w,h,-w*.1,0,w,h);camera.updateProjectionMatrix();readScroll();}
+addEventListener('resize',resize);resize();cur=target;
+
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const time=(now-t0)/1000;
+  cur=reduce?target:cur+(target-cur)*(1-Math.exp(-dt*5));
+  if(Math.abs(target-cur)<1e-5)cur=target;
+  const u=cur*U;
+  const rv=reduce?1:ease(clamp((time-.2)/3.4));
+  [stadium,grass,lines].forEach(o=>o.geometry.setDrawRange(0,Math.floor(o.userData.n*rv)));
+  scanRing.scale.setScalar(4+rv*120);scanRing.material.opacity=rv<1?.55*(1-rv*.6):0;
+  camAt(u);
+  if(!reduce){const k=1-clamp((u-3.2)/.6)*.7;camPos.x+=Math.sin(time*.23)*2.2*k;camPos.y+=Math.sin(time*.31)*.8*k;}
+  povW=0;
+  PLAYS.forEach(p=>{if(!p.pov)return;const q=(u-p.u0)/p.len;if(q<0||q>1)return;
+    const w=smooth(clamp(q/.07))*smooth(clamp((1-q)/.06));if(w<=0)return;povW=w;
+    if(povName!==p.pov){povName=p.pov;povLbl.textContent=p.name+' · primeira pessoa';}
+    const f=frameOf(p,q),e=posAt(p.actors[p.pov].it,f);
+    let y=1.72;const prev=posAt(p.actors[p.pov].it,Math.max(0,f-.05));const moving=Math.hypot(e[0]-prev[0],e[1]-prev[1])>.02;
+    if(moving&&!reduce)y+=Math.abs(Math.sin(f*Math.PI*8))*.07;
+    if(p.jump){const jt=clamp((f-1.8)/.34);y+=Math.sin(Math.PI*jt)*.55;}
+    const eye=V(e[0],y,e[1]);
+    const c=P2(...p.items.find(i=>i.id==='C').p[0]),cL=V(c[0],1.5,c[1]);
+    const tg=ballAt(p.balls[p.povBall],1),tL=V(tg.x,p.jump?1.4:.6,tg.z),goal=V(0,1.3,0);
+    const mid=cL.clone().lerp(tL,.55);
+    let look;
+    if(f<.4)look=cL.clone();else if(f<1)look=cL.clone().lerp(mid,ease(clamp((f-.4)/.6)));else if(f<2)look=mid.clone().lerp(tL,ease(clamp(f-1)));
+    else look=tL.clone().lerp(goal,ease(clamp((f-2)/.5)));
+    // bola em movimento: o olhar acompanha
+    p.balls.forEach(bl=>{const sg=clamp(f-(bl.at-1)),t=clamp(sg*bl.n-bl.i);if(t>0&&t<1){look.lerp(ballAt(bl,t),ease(clamp(t/.12)));}});
+    camPos.lerp(eye,w);camLook.lerp(look,w);});
+  const fv=lerp(baseFov,74,povW);if(Math.abs(camera.fov-fv)>.01){camera.fov=fv;camera.updateProjectionMatrix();}
+  povEl.style.opacity=povW.toFixed(3);
+  camera.position.copy(camPos);camera.lookAt(camLook);
+  camera.updateMatrixWorld();
+  PLAYS.forEach((p,i)=>updatePlay(p,u,i));
+  const wp=new THREE.Vector3();PLAYS.forEach(p=>{if(!p.root.visible)return;p.labels.forEach(l=>{l.getWorldPosition(wp);l.material.opacity=l.userData.named?clamp((wp.distanceTo(camera.position)-9)/6):clamp((wp.distanceTo(camera.position)-4)/5);});});
+  renderer.render(scene,camera);
+  panelsAt(u);playPanel(u);
+  bar.style.transform='scaleX('+cur.toFixed(4)+')';
+  requestAnimationFrame(loop);
 }
-renderLogs();
+requestAnimationFrame(loop);
+})();
+
 </script>
+
 </body>
 </html>
