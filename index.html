@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>Bola Parada · Elenco</title>
+<title>Bola Parada · Silhuetas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -43,7 +43,7 @@ body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-web
 .corner{position:fixed;z-index:10;bottom:max(14px,env(safe-area-inset-bottom,0px));right:var(--gr);display:flex;gap:14px;align-items:center}
 .corner a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-2);text-decoration:none;border:1px solid var(--line-2);border-radius:999px;padding:8px 12px;background:rgba(15,13,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .corner a:hover{color:var(--fg);border-color:var(--fg-3)}
-.jump{display:flex;gap:6px}@media (max-width:620px){.jump{display:none}}
+.jump{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.jump a{display:inline-flex;align-items:center;gap:6px}.jump a svg{width:9px;height:9px;color:var(--red-hi)}.jump a.cap{border-color:var(--red);color:var(--fg)}@media (max-width:620px){.jump{display:none}}
 
 /* painéis de texto */
 .panel{position:fixed;z-index:5;opacity:0;pointer-events:none;will-change:opacity,transform}
@@ -107,6 +107,12 @@ body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-web
 .pov .ret::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--red-hi)}
 @media (max-width:760px){.pov .brk{font-size:10px;letter-spacing:.08em}}
 .p-roster{right:var(--gr);top:calc(66px + env(safe-area-inset-top,0px));width:330px;padding:16px 18px;border:1px solid var(--line-2);border-radius:16px;background:rgba(15,13,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-sizing:border-box;max-height:calc(100vh - 160px);overflow:auto}
+.rtog{appearance:none;border:0;background:none;color:inherit;padding:0;margin:0;width:100%;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer;font:inherit}
+.rchev{width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
+.rchev::before{content:"";width:7px;height:7px;border-right:1.5px solid var(--fg);border-bottom:1.5px solid var(--fg);transform:translateY(-2px) rotate(45deg);transition:transform .25s}
+.p-roster.min{width:auto;padding:9px 12px 9px 14px;border-radius:999px}
+.p-roster.min .rchev::before{transform:translateY(2px) rotate(-135deg)}
+.p-roster.min #roster,.p-roster.min .rsrc{display:none}
 #roster{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
 #roster li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:start}
 #roster .ch2{height:24px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;background:var(--red);color:#fff}
@@ -145,7 +151,7 @@ body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-web
 <section class="panel p-hero" data-a="0" data-b=".94" aria-label="Abertura">
   <p class="brk">SC Internacional · GT Futebol · Teste com elenco · uso interno</p>
   <h1 class="giant">Bola parada<em>a leitura de um lance</em></h1>
-  <div class="sub"><p>Teste: as quatro rotinas com as funções ocupadas pelo elenco atual e os duelos aéreos de cada um no Sofascore.</p><p class="cue"><i></i>Role para entrar</p></div>
+  <div class="sub"><p>Teste de silhuetas: cada jogador do Inter na altura do Sofascore; a primeira pessoa na altura dos olhos de quem joga. Adversário em altura padrão de 1,83 m.</p><p class="cue"><i></i>Role para entrar</p></div>
 </section>
 
 <section class="panel p-mid" data-a="1.21" data-b="2.15" aria-label="Tese">
@@ -174,8 +180,8 @@ body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-web
   <dl class="pref"><dt>Referência</dt><dd id="pref"></dd><dt class="dx">Dado</dt><dd class="dx" id="pdado"></dd><dt class="dx">Adversário simulado</dt><dd class="dx" id="pdfn"></dd></dl>
 </section>
 
-<aside class="panel p-roster" data-a="3.72" data-b="99" aria-label="Escalação no lance">
-  <p class="brk" id="rtitle">Escalação no lance</p>
+<aside class="panel p-roster" data-a="2.48" data-b="99" aria-label="Escalação no lance">
+  <button type="button" class="rtog" id="rtog" aria-expanded="true" aria-controls="roster"><span class="brk" id="rtitle">Escalação · E-01</span><span class="rchev" aria-hidden="true"></span></button>
   <ul id="roster"></ul>
   <p class="rsrc">% nos rótulos = duelos aéreos ganhos. Sofascore, Brasileirão 2026, extração de 29/10/2026; inclui bola rolando e bola parada. Funções de teste. <span class="tag i">Inferência</span></p>
 </aside>
@@ -186,7 +192,7 @@ body{margin:0;background:var(--ink);color:var(--fg);font-family:var(--body);-web
   <div class="grid">
     <div><b>O que os dados apoiam</b>Maripán (74%) na zona principal e Juninho (61%) como Z3. Alerrandro e Vitinho, com cerca de 30% no alto, como isca e bloqueio. Villagra (4,3 recuperações por jogo) e Bernabei na proteção. <span class="tag i">Inferência</span></div>
     <div><b>O que pede atenção</b>Bruno Gomes como Z2: 175 cm e 54% no alto, abaixo de Victor Gabriel e Juninho (61%) e de Mercado (56%). Alan Patrick acerta 29% dos cruzamentos e está 0/10 em faltas diretas.</div>
-    <div><b>Limitações</b>Duelos aéreos misturam bola rolando e bola parada. Amostras pequenas (Maripán 11 jogos, Juninho 14). Defesa adversária simulada. Escalação para teste, não recomendação.</div>
+    <div><b>Limitações</b>Altura não é alcance: impulsão e timing não estão em dado público. Adversário em 1,83 m padrão (Hipótese). Duelos aéreos misturam bola rolando e parada. Escalação para teste.</div>
   </div>
 </section>
 
@@ -422,15 +428,15 @@ const PLAYS=[
 ];
 /* ---------- teste com elenco: funções ocupadas por jogadores, com números do Sofascore ---------- */
 const PL={
- AP:{n:'Alan Patrick',sh:'ALAN PATRICK',ae:'24%',s:'Destro · 29% dos cruzamentos certos · 8 grandes chances'},
- MA:{n:'Maripán',sh:'MARIPÁN',ae:'74%',s:'193 cm · aéreo 74% (2,1 ganhos/jogo) · 11 jogos'},
- BG:{n:'Bruno Gomes',sh:'BRUNO GOMES',ae:'54%',s:'175 cm · aéreo 54% (1,0/jogo) · 61% no chão'},
- JU:{n:'Juninho',sh:'JUNINHO',ae:'61%',s:'186 cm · aéreo 61% (1,2/jogo) · 14 jogos'},
- VI:{n:'Vitinho',sh:'VITINHO',ae:'32%',s:'181 cm · aéreo 32% (1,4/jogo) · 2 gols de fora da área'},
- AL:{n:'Alerrandro',sh:'ALERRANDRO',ae:'30%',s:'180 cm · aéreo 30% (1,1/jogo) · melhor como isca'},
- TM:{n:'Thiago Maia',sh:'THIAGO MAIA',ae:'54%',s:'179 cm · aéreo 54% (0,4/jogo) · 2,4 bolas recuperadas/jogo'},
- RV:{n:'Villagra',sh:'VILLAGRA',ae:'59%',s:'178 cm · aéreo 59% (0,8/jogo) · 4,3 bolas recuperadas/jogo'},
- AB:{n:'Bernabei',sh:'BERNABEI',ae:'41%',s:'169 cm · aéreo 41% (0,6/jogo) · 4,2 bolas recuperadas/jogo'},
+ AP:{h:1.77,n:'Alan Patrick',sh:'ALAN PATRICK',ae:'24%',s:'Destro · 29% dos cruzamentos certos · 8 grandes chances'},
+ MA:{h:1.93,n:'Maripán',sh:'MARIPÁN',ae:'74%',s:'193 cm · aéreo 74% (2,1 ganhos/jogo) · 11 jogos'},
+ BG:{h:1.75,n:'Bruno Gomes',sh:'BRUNO GOMES',ae:'54%',s:'175 cm · aéreo 54% (1,0/jogo) · 61% no chão'},
+ JU:{h:1.86,n:'Juninho',sh:'JUNINHO',ae:'61%',s:'186 cm · aéreo 61% (1,2/jogo) · 14 jogos'},
+ VI:{h:1.81,n:'Vitinho',sh:'VITINHO',ae:'32%',s:'181 cm · aéreo 32% (1,4/jogo) · 2 gols de fora da área'},
+ AL:{h:1.8,n:'Alerrandro',sh:'ALERRANDRO',ae:'30%',s:'180 cm · aéreo 30% (1,1/jogo) · melhor como isca'},
+ TM:{h:1.79,n:'Thiago Maia',sh:'THIAGO MAIA',ae:'54%',s:'179 cm · aéreo 54% (0,4/jogo) · 2,4 bolas recuperadas/jogo'},
+ RV:{h:1.78,n:'Villagra',sh:'VILLAGRA',ae:'59%',s:'178 cm · aéreo 59% (0,8/jogo) · 4,3 bolas recuperadas/jogo'},
+ AB:{h:1.69,n:'Bernabei',sh:'BERNABEI',ae:'41%',s:'169 cm · aéreo 41% (0,6/jogo) · 4,2 bolas recuperadas/jogo'},
  X:{n:'A definir',s:'10º jogador de linha: opção curta',open:1}};
 const BASE={C:'AP',Z1:'MA',Z2:'BG',Z3:'JU',BL:'VI',IS:'AL',S:'TM',P:'RV',P2:'AB',A:'X',CH:'VI'};
 function rosterFor(key){const k=key.split('-')[0];const r={};for(const f in BASE)r[f]=PL[BASE[f]];return r;}
@@ -459,7 +465,7 @@ const COL={att:0xEF3A50,def:0x8C837C,gk:0xC8BFB7,pro:0x86B3CC};
 /* ---------- primeira pessoa: uma versão de cada rotina pelos olhos de uma função ---------- */
 function addPov(srcKey,o){const i=PLAYS.findIndex(p=>p.key===srcKey);const src=PLAYS[i];const b=JSON.parse(JSON.stringify(src));
   Object.assign(b,{key:srcKey+'-pov',code:src.code+' · '+o.pov,name:'Visão do '+o.pov,tag:'Primeira pessoa',sub:'A mesma '+src.code+', vista por '+o.who+'.',
-    K:[[0,[0,27,54],[0,0,19]],[1,[0,27,54],[0,0,19]]],dfn:'Mesma jogada e mesma defesa simulada da '+src.code+', vistas a 1,72 m de altura pelos olhos do '+o.pov+'.'},o);
+    K:[[0,[0,27,54],[0,0,19]],[1,[0,27,54],[0,0,19]]],dfn:'Mesma jogada e mesma defesa simulada da '+src.code+', vistas na altura dos olhos do '+o.pov+' (93% da estatura).'},o);
   PLAYS.splice(i+1,0,b);}
 addPov('e01',{pov:'Z1',name:'Visão de Maripán',who:'Maripán, o Z1',povBall:0,jump:1,
   frames:[
@@ -468,8 +474,8 @@ addPov('e01',{pov:'Z1',name:'Visão de Maripán',who:'Maripán, o Z1',povBall:0,
    {t:'Ataco a bola',d:'Acompanho a bola fechada desde o pé do <b>C</b>. Chego em corrida, salto e cabeceio no primeiro contato.'},
    {t:'Depois do lance',d:'Se a bola sobra, a <b>S</b> e os dois <b>P</b> já estão no lugar. Se a jogada morre, eu volto para a proteção.'}],
   FP:[[.06,0],[.22,0],[.42,1],[.5,1],[.72,2],[.84,2],[.97,3]],
-  CO:[{t:'C · braço erguido = sinal de partida',a:'C',f:[-1,.45]},{t:'Meu marcador',a:'i1',f:[-1,.95]},
-   {t:'BL · parado na frente do goleiro',a:'BL',f:[.55,1.6]},{t:'Zona do goleiro · é aqui que eu chego',a:'end0',f:[.6,1.25],cls:'ball'},
+  CO:[{t:'Alan Patrick · braço erguido = sinal',a:'C',f:[-1,.45]},{t:'Meu marcador',a:'i1',f:[-1,.95]},
+   {t:'Vitinho · parado na frente do goleiro',a:'BL',f:[.55,1.6]},{t:'Zona do goleiro · é aqui que eu chego',a:'end0',f:[.6,1.25],cls:'ball'},
    {t:'Bola fechada · olho nela desde o pé',a:'ball',f:[1.1,1.85],cls:'ball'},{t:'Primeiro contato útil',a:'end0',f:[1.95,2.6],cls:'ball'},
    {t:'S · segunda bola',a:'S',f:[2.6,3.5],cls:'pro'}]});
 addPov('e02',{pov:'Z1',name:'Visão de Maripán',who:'Maripán, que desvia no 1º pau',povBall:0,jump:1,
@@ -507,13 +513,30 @@ addPov('e03',{pov:'CH',name:'Visão de Vitinho',who:'Vitinho, o chutador',povBal
 /* ---------- linha do tempo em telas ---------- */
 const OPEN=3.63,BLK=7;let acc=OPEN;
 PLAYS.forEach(p=>{p.len=p.pov?5.5:BLK;p.u0=acc;p.u1=acc+p.len;acc=p.u1;});
-const U=acc+2;document.querySelector('.p-roster').dataset.b=(PLAYS[0].u1-.2).toFixed(2);
+const U=acc+2;document.querySelector('.p-roster').dataset.a=(OPEN-1.15).toFixed(2);document.querySelector('.p-roster').dataset.b=(acc-.15).toFixed(2);
 document.querySelector('.p-play').dataset.b=(acc-.15).toFixed(2);document.querySelector('.p-end').dataset.a=(acc+.25).toFixed(2);
 document.querySelector('.spacer').style.height=(U*100)+'vh';
 
 function bez(b,t){if(!b.c)return[lerp(b.q0[0],b.q1[0],t),lerp(b.q0[1],b.q1[1],t)];const u=1-t;return[u*u*b.q0[0]+2*u*t*b.qc[0]+t*t*b.q1[0],u*u*b.q0[1]+2*u*t*b.qc[1]+t*t*b.q1[1]];}
 function ballAt(b,t){const q=bez(b,t);return V(q[0],lerp(b.h0,b.h1,t)+Math.sin(Math.PI*t)*b.apex,q[1]);}
 function dotsMat(color,size,opacity){return new THREE.PointsMaterial({size,map:DOT,color,vertexColors:color===undefined,transparent:true,opacity:opacity===undefined?1:opacity,depthWrite:false,blending:THREE.AdditiveBlending});}
+
+/* ---------- silhueta em nuvem de pontos, na escala da altura ---------- */
+const H_DEF=1.83;
+function heightOf(play,it){if(it.k==='def'||it.k==='gk')return H_DEF;const R=rosterFor(play.key)[it.id];return R&&R.h?R.h:1.80;}
+function bodyCloud(H,color,dim){const P=[],C=[],col=new THREE.Color(color),rnd=Math.random;
+  const put=(x,y,z)=>{P.push(x,y,z);const k=(dim?.55:.8)+rnd()*.35;C.push(col.r*k,col.g*k,col.b*k);};
+  const sph=(cy,r,n)=>{for(let i=0;i<n;i++){const u=rnd()*2-1,t=rnd()*Math.PI*2,s=Math.sqrt(1-u*u);put(Math.cos(t)*s*r,cy+u*r,Math.sin(t)*s*r*.9);}};
+  const tube=(x1,y1,x2,y2,r1,r2,n,rz)=>{for(let i=0;i<n;i++){const t=rnd(),a=rnd()*Math.PI*2,r=lerp(r1,r2,t);put(lerp(x1,x2,t)+Math.cos(a)*r,lerp(y1,y2,t),Math.sin(a)*r*(rz||1));}};
+  sph(.935*H,.062*H,70);
+  tube(0,.86*H,0,.875*H,.028*H,.028*H,10);
+  tube(0,.53*H,0,.82*H,.11*H,.135*H,170,.55);
+  tube(0,.47*H,0,.53*H,.105*H,.11*H,30,.6);
+  [-1,1].forEach(sd=>{tube(sd*.16*H,.80*H,sd*.185*H,.47*H,.034*H,.026*H,45);
+    tube(sd*.06*H,.49*H,sd*.068*H,.05*H,.05*H,.032*H,70);
+    tube(sd*.068*H,.02*H,sd*.068*H,.05*H,.04*H,.04*H,8);});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  return new THREE.Points(g,new THREE.PointsMaterial({size:.09,map:DOT,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));}
 
 function buildPlay(play){
   const root=new THREE.Group();scene.add(root);play.root=root;
@@ -522,14 +545,13 @@ function buildPlay(play){
     const g=new THREE.Group(),c=COL[it.k];
     const ring=new THREE.Mesh(new THREE.RingGeometry(.42,.56,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.95,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.04;g.add(ring);
     const disc=new THREE.Mesh(new THREE.CircleGeometry(.42,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.16,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=.03;g.add(disc);
-    const beam=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,1.8,8),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:it.k==='def'?.45:.75,depthWrite:false}));beam.position.y=.9;g.add(beam);
-    const head=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:c,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));head.scale.set(.75,.75,1);head.position.y=1.85;g.add(head);
+    const H=heightOf(play,it);g.add(bodyCloud(H,c,it.k==='def'));g.userData.H=H;
     if(it.k!=='def'||it.lab){const lab=it.lab||it.id;const tex=it.k==='def'?labelTex(lab,'rgba(15,13,13,.8)','#B5ABA3','#5A504B'):it.k==='att'?labelTex(lab,'#D3122C','#ffffff'):it.k==='pro'?labelTex(lab,'rgba(15,13,13,.85)','#F3EFEA','#86B3CC'):labelTex(lab,'rgba(15,13,13,.85)','#C8BFB7','#C8BFB7');
       const R=rosterFor(play.key)[it.id];const named=R&&!R.open&&it.k!=='def';const nm=named?R.sh+' · '+R.ae:'';const tx2=named?(it.k==='att'?nameTex(lab,nm,'#D3122C','#ffffff'):nameTex(lab,nm,'rgba(15,13,13,.88)','#F3EFEA','#86B3CC')):tex;
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx2,transparent:true,depthTest:false,depthWrite:false}));s.userData.named=named;if(it.k==='def'){s.scale.set(1.2,.6,1);s.position.y=2.5;}else if(s.userData.named){s.scale.set(4,.6,1);s.position.y=2.75;}else{s.scale.set(1.5,.75,1);s.position.y=2.75;}s.renderOrder=10;g.add(s);play.labels.push(s);}
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx2,transparent:true,depthTest:false,depthWrite:false}));s.userData.named=named;if(it.k==='def'){s.scale.set(1.2,.6,1);s.position.y=H+.62;}else if(s.userData.named){s.scale.set(4,.6,1);s.position.y=H+.75;}else{s.scale.set(1.5,.75,1);s.position.y=H+.75;}s.renderOrder=10;g.add(s);play.labels.push(s);}
     root.add(g);play.actors[it.id]={g,it};
   });
-  if(play.pov)play.actors[play.pov].g.visible=false;
+  if(play.pov){play.actors[play.pov].g.visible=false;play.eyeH=.93*play.actors[play.pov].g.userData.H;}
   play.trails=[];
   play.items.forEach(it=>{for(let k=1;k<it.p.length;k++){const a=P2(...it.p[k-1]),b=P2(...it.p[k]);const L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<.3)continue;
     const back=k===1&&it.back,decoy=it.decoy&&k===it.p.length-1;
@@ -596,7 +618,9 @@ function panelsAt(u){panels.forEach(P=>{const fade=.28;const o=Math.min(P.a<=0?1
   let c=CH[0][1];CH.forEach(x=>{if(u>=x[0])c=x[1];});if(c!==lastCh){chEl.textContent='[ '+c+' ]';lastCh=c;}}
 // atalhos de rotina
 const jump=document.getElementById('jump');
-PLAYS.forEach(p=>{const a=document.createElement('a');a.href='#'+p.key;a.textContent=p.pov?p.pov+' · 1ª':p.code;a.addEventListener('click',e=>{e.preventDefault();const h=document.documentElement;const max=h.scrollHeight-innerHeight;window.scrollTo({top:(p.u0+.3)/U*max,behavior:reduce?'auto':'smooth'});});jump.appendChild(a);});
+const TRI='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5l7 4.5-7 4.5z" fill="currentColor"/></svg>';
+{const a=document.createElement('a');a.href='#capa';a.className='cap';a.innerHTML=TRI+'Capa';a.title='Rodar desde o início';a.addEventListener('click',e=>{e.preventDefault();runIntro();});jump.appendChild(a);}
+PLAYS.forEach((p,i)=>{const a=document.createElement('a');a.href='#'+p.key;a.innerHTML=TRI+(p.pov?p.pov+' · 1ª':p.code);a.title='Rodar '+p.code+' · '+p.name;a.addEventListener('click',e=>{e.preventDefault();runFrom(i,true);});jump.appendChild(a);});
 
 /* ---------- cena por rotina ---------- */
 const tmp=new THREE.Vector3();
@@ -634,7 +658,8 @@ function playPanel(u){
   if(idx<0)return;
   const play=PLAYS[idx];
   if(idx!==lastPlay){lastPlay=idx;lastI=-1;pbrk.textContent=play.code+' · '+play.tag;pname.textContent=play.name;psub.textContent=play.sub;
-    {const R=rosterFor(play.key);const order=['C','Z1','Z2','Z3','BL','IS','CH','A','S','P','P2'].filter(k=>play.items.some(i=>i.id===k));
+    renderRoster(play);
+    if(0){const R=rosterFor(play.key);const order=['C','Z1','Z2','Z3','BL','IS','CH','A','S','P','P2'].filter(k=>play.items.some(i=>i.id===k));
      document.getElementById('rtitle').textContent='Escalação · '+play.code;
      document.getElementById('roster').innerHTML=order.map(k=>{const r=R[k];const v=parseInt(r.ae||'0');return '<li><span class="ch2'+(k[0]==='S'||k[0]==='P'?' pro':'')+'">'+(k==='P2'?'P':k)+'</span><div><b'+(r.open?' class="open"':'')+'>'+r.n+'</b><span class="d">'+r.s+'</span></div><span class="ae'+(v>=60?' hi':'')+'">'+(r.ae||'—')+'</span></li>';}).join('');}document.getElementById('pref').innerHTML=play.ref;document.getElementById('pdado').innerHTML=play.dado;document.getElementById('pdfn').innerHTML=play.dfn+' <span class="tag i">Hipótese</span>';ppanel.setAttribute('aria-label','Rotina '+play.code);}
   const q=clamp((u-play.u0)/play.len),f=frameOf(play,q);
@@ -645,6 +670,15 @@ function playPanel(u){
   ppanel.style.opacity=(Math.min(+ppanel.style.opacity||0,dip)).toFixed(3);
 }
 
+/* ---------- escalação: recolhe sozinha quando a E-01 começa ---------- */
+const rosterEl=document.querySelector('.p-roster'),rtog=document.getElementById('rtog');let rUser=null;
+function renderRoster(play){const R=rosterFor(play.key);const order=['C','Z1','Z2','Z3','BL','IS','CH','A','S','P','P2'].filter(k=>play.items.some(i=>i.id===k));
+  document.getElementById('rtitle').textContent='Escalação · '+play.code;
+  document.getElementById('roster').innerHTML=order.map(k=>{const r=R[k];const v=parseInt(r.ae||'0');return '<li><span class="ch2'+(k[0]==='S'||k[0]==='P'?' pro':'')+'">'+(k==='P2'?'P':k)+'</span><div><b'+(r.open?' class="open"':'')+'>'+r.n+'</b><span class="d">'+r.s+'</span></div><span class="ae'+(v>=60?' hi':'')+'">'+(r.ae||'—')+'</span></li>';}).join('');}
+renderRoster(PLAYS[0]);
+rtog.addEventListener('click',()=>{rUser=!rosterEl.classList.contains('min');});
+function rosterAt(u){const min=rUser===null?u>PLAYS[0].u0+.15:rUser;rosterEl.classList.toggle('min',min);rtog.setAttribute('aria-expanded',String(!min));}
+
 /* ---------- rodar com um clique (a página rola sozinha pela rotina) ---------- */
 const bplay=document.getElementById('bplay'),bnext=document.getElementById('bnext');
 const LBL_PLAY='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>Rodar jogada',LBL_PAUSE='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1" width="3" height="10" fill="currentColor"/><rect x="7" y="1" width="3" height="10" fill="currentColor"/></svg>Pausar';
@@ -653,13 +687,15 @@ let autoRaf=null;
 function yOf(uu){const h=document.documentElement;return clamp(uu/U)*(h.scrollHeight-innerHeight);}
 function stopRun(){if(autoRaf){cancelAnimationFrame(autoRaf);autoRaf=null;}bplay.innerHTML=LBL_PLAY;}
 function currentIdx(){const uu=target*U;let idx=0;PLAYS.forEach((p,i)=>{if(uu>=p.u0-.1)idx=i;});return idx;}
+function runSpan(from,to,dur,then){if(autoRaf)cancelAnimationFrame(autoRaf);
+  const y0=yOf(from),y1=yOf(to),t0=performance.now();window.scrollTo(0,y0);bplay.innerHTML=LBL_PAUSE;
+  const step=now=>{const k=clamp((now-t0)/dur);window.scrollTo(0,lerp(y0,y1,k));if(k<1)autoRaf=requestAnimationFrame(step);else{autoRaf=null;bplay.innerHTML=LBL_PLAY;if(then)then();}};
+  autoRaf=requestAnimationFrame(step);}
 function runFrom(idx,restart){
   const p=PLAYS[idx],uu=target*U;let from=uu;
   if(restart||uu<p.u0||uu>p.u1-.6)from=p.u0+.05;
-  const to=p.u1-.25,dur=Math.max(1500,(to-from)/p.len*11000),y0=yOf(from),y1=yOf(to),t0=performance.now();
-  window.scrollTo(0,y0);bplay.innerHTML=LBL_PAUSE;
-  const step=now=>{const k=clamp((now-t0)/dur);window.scrollTo(0,lerp(y0,y1,k));if(k<1)autoRaf=requestAnimationFrame(step);else{autoRaf=null;bplay.innerHTML=LBL_PLAY;}};
-  autoRaf=requestAnimationFrame(step);}
+  const to=p.u1-.25;runSpan(from,to,Math.max(1500,(to-from)/p.len*11000));}
+function runIntro(){runSpan(0,PLAYS[0].u0+.05,10000,()=>runFrom(0,true));}
 bplay.addEventListener('click',()=>{if(autoRaf){stopRun();return;}runFrom(currentIdx(),false);});
 bnext.addEventListener('click',()=>{stopRun();const i=currentIdx();if(i<PLAYS.length-1)runFrom(i+1,true);else window.scrollTo(0,yOf(U));});
 ['wheel','touchstart','keydown'].forEach(ev=>addEventListener(ev,()=>{if(autoRaf)stopRun();},{passive:true}));
@@ -688,7 +724,7 @@ function loop(now){
     const w=smooth(clamp(q/.07))*smooth(clamp((1-q)/.06));if(w<=0)return;povW=w;
     if(povName!==p.pov){povName=p.pov;povLbl.textContent=p.name+' · primeira pessoa';}
     const f=frameOf(p,q),e=posAt(p.actors[p.pov].it,f);
-    let y=1.72;const prev=posAt(p.actors[p.pov].it,Math.max(0,f-.05));const moving=Math.hypot(e[0]-prev[0],e[1]-prev[1])>.02;
+    let y=p.eyeH||1.72;const prev=posAt(p.actors[p.pov].it,Math.max(0,f-.05));const moving=Math.hypot(e[0]-prev[0],e[1]-prev[1])>.02;
     if(moving&&!reduce)y+=Math.abs(Math.sin(f*Math.PI*8))*.07;
     if(p.jump){const jt=clamp((f-1.8)/.34);y+=Math.sin(Math.PI*jt)*.55;}
     const eye=V(e[0],y,e[1]);
@@ -708,7 +744,7 @@ function loop(now){
   PLAYS.forEach((p,i)=>updatePlay(p,u,i));
   const wp=new THREE.Vector3();PLAYS.forEach(p=>{if(!p.root.visible)return;p.labels.forEach(l=>{l.getWorldPosition(wp);l.material.opacity=l.userData.named?clamp((wp.distanceTo(camera.position)-9)/6):clamp((wp.distanceTo(camera.position)-4)/5);});});
   renderer.render(scene,camera);
-  panelsAt(u);playPanel(u);
+  panelsAt(u);playPanel(u);rosterAt(u);
   bar.style.transform='scaleX('+cur.toFixed(4)+')';
   requestAnimationFrame(loop);
 }
